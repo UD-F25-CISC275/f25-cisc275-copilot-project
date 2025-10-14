@@ -466,3 +466,34 @@
     cursor: pointer;
 }
 
+/* Essay item specific styles */
+.essay-preview-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #444;
+}
+
+.essay-preview-section label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #aaa;
+}
+
+.essay-response-area {
+    min-height: 120px;
+}
+
+.essay-counter {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    color: #aaa;
+    text-align: right;
+}
+
+.essay-counter span {
+    margin: 0 0.5rem;
+}
+
