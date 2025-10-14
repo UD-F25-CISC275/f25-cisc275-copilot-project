@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, ItemType, CodeFile } from "../types/AssignmentItem";
 import { MarkdownEditor } from "./MarkdownEditor";
 import { usePyodide } from "../hooks/usePyodide";
 import "../styles/AssignmentEditor.css";
+
+// Python code to redirect stdout for capturing print statements
+const PYTHON_STDOUT_REDIRECT = `
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+`;
 
 interface AssignmentEditorProps {
     assignment: Assignment;
@@ -70,22 +77,31 @@ interface CodeCellEditorProps {
 
 function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
     // Initialize files array if it doesn't exist (backward compatibility)
-    const files =
-        item.files.length > 0
-            ? item.files
-            : [
-                  {
-                      name: "main.py",
-                      language: "python",
-                      content: item.starterCode || "",
-                      isInstructorFile: false,
-                  },
-              ];
+    const files = useMemo(
+        () =>
+            item.files.length > 0
+                ? item.files
+                : [
+                      {
+                          name: "main.py",
+                          language: "python",
+                          content: item.starterCode || "",
+                          isInstructorFile: false,
+                      },
+                  ],
+        [item.files, item.starterCode]
+    );
 
     const [selectedFileIndex, setSelectedFileIndex] = useState(0);
     const [executionResult, setExecutionResult] = useState<string>("");
     const [isExecuting, setIsExecuting] = useState(false);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
+
+    // Memoize student files to avoid recalculating on every render
+    const studentFiles = useMemo(
+        () => files.filter(f => !f.isInstructorFile),
+        [files]
+    );
 
     const addFile = () => {
         const newFiles = [
@@ -128,15 +144,9 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
 
         try {
             // Redirect stdout to capture print statements
-            pyodide.runPython(`
-                import sys
-                from io import StringIO
-                sys.stdout = StringIO()
-            `);
+            pyodide.runPython(PYTHON_STDOUT_REDIRECT);
 
             // Execute all non-instructor files
-            const studentFiles = files.filter(f => !f.isInstructorFile);
-            
             for (const file of studentFiles) {
                 if (file.language === "python" && file.content.trim()) {
                     pyodide.runPython(file.content);
@@ -144,7 +154,7 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
             }
 
             // Get the output
-            const output = pyodide.runPython("sys.stdout.getvalue()");
+            const output = String(pyodide.runPython("sys.stdout.getvalue()"));
             setExecutionResult(output || "Code executed successfully (no output)");
         } catch (error) {
             if (error instanceof Error) {

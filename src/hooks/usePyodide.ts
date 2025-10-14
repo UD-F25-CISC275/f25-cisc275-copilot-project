@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-
-// Use Pyodide's actual types with string return for runPython
-interface PyodideInterface {
-    runPython: (code: string) => string;
-    loadPackagesFromImports: (code: string) => Promise<string[]>;
-}
+import type { PyodideInterface } from "pyodide";
 
 let pyodideInstance: PyodideInterface | null = null;
 let pyodideLoading: Promise<PyodideInterface> | null = null;
