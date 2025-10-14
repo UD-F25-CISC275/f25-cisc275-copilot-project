@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, ItemType, CodeFile } from "../types/AssignmentItem";
 import { MarkdownEditor } from "./MarkdownEditor";
+import { usePyodide } from "../hooks/usePyodide";
 import "../styles/AssignmentEditor.css";
 
 interface AssignmentEditorProps {
@@ -82,6 +83,9 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
               ];
 
     const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+    const [executionResult, setExecutionResult] = useState<string>("");
+    const [isExecuting, setIsExecuting] = useState(false);
+    const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     const addFile = () => {
         const newFiles = [
@@ -111,6 +115,46 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
             i === index ? { ...file, ...updates } : file
         );
         onUpdate({ files: newFiles });
+    };
+
+    const executeCode = () => {
+        if (!pyodide) {
+            setExecutionResult("Error: Python runtime not loaded yet. Please wait...");
+            return;
+        }
+
+        setIsExecuting(true);
+        setExecutionResult("");
+
+        try {
+            // Redirect stdout to capture print statements
+            pyodide.runPython(`
+                import sys
+                from io import StringIO
+                sys.stdout = StringIO()
+            `);
+
+            // Execute all non-instructor files
+            const studentFiles = files.filter(f => !f.isInstructorFile);
+            
+            for (const file of studentFiles) {
+                if (file.language === "python" && file.content.trim()) {
+                    pyodide.runPython(file.content);
+                }
+            }
+
+            // Get the output
+            const output = pyodide.runPython("sys.stdout.getvalue()");
+            setExecutionResult(output || "Code executed successfully (no output)");
+        } catch (error) {
+            if (error instanceof Error) {
+                setExecutionResult(`Error: ${error.message}`);
+            } else {
+                setExecutionResult(`Error: ${String(error)}`);
+            }
+        } finally {
+            setIsExecuting(false);
+        }
     };
 
     return (
@@ -247,6 +291,36 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
                             className="code-editor-textarea"
                             data-testid={`file-content-${item.id}-${selectedFileIndex}`}
                         />
+                    </div>
+                )}
+
+                {/* Execution section for Python files */}
+                {files.some(f => f.language === "python" && !f.isInstructorFile) && (
+                    <div className="code-execution-section">
+                        <button
+                            type="button"
+                            onClick={executeCode}
+                            disabled={isExecuting || pyodideLoading}
+                            className="run-code-button"
+                            data-testid={`run-code-${item.id}`}
+                        >
+                            {isExecuting
+                                ? "Running..."
+                                : pyodideLoading
+                                  ? "Loading Python..."
+                                  : "▶ Run Code"}
+                        </button>
+                        {pyodideError && (
+                            <div className="execution-error" data-testid={`pyodide-error-${item.id}`}>
+                                Failed to load Python runtime: {pyodideError}
+                            </div>
+                        )}
+                        {executionResult && (
+                            <div className="execution-result" data-testid={`execution-result-${item.id}`}>
+                                <strong>Output:</strong>
+                                <pre>{executionResult}</pre>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
