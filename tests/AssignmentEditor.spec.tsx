@@ -1297,5 +1297,296 @@ describe("AssignmentEditor", () => {
             );
         });
     });
+
+    describe("Multi-file Code Cell Features", () => {
+        test("adds a code cell with default file", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            // Check prompt textarea exists
+            expect(screen.getByTestId("code-prompt-1")).toBeInTheDocument();
+
+            // Check default file tab exists
+            expect(screen.getByTestId("file-tab-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("file-tab-1-0")).toHaveTextContent(
+                "main.py"
+            );
+
+            // Check file editor exists
+            expect(screen.getByTestId("file-editor-1")).toBeInTheDocument();
+
+            // Check file controls
+            expect(screen.getByTestId("file-name-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("file-language-1-0")).toBeInTheDocument();
+            expect(
+                screen.getByTestId("file-instructor-1-0")
+            ).toBeInTheDocument();
+            expect(screen.getByTestId("file-content-1-0")).toBeInTheDocument();
+        });
+
+        test("can add additional files", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            // Add a second file
+            fireEvent.click(screen.getByTestId("add-file-1"));
+
+            // Check both file tabs exist
+            expect(screen.getByTestId("file-tab-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("file-tab-1-1")).toBeInTheDocument();
+            expect(screen.getByTestId("file-tab-1-1")).toHaveTextContent(
+                "file2.py"
+            );
+        });
+
+        test("can switch between files", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+            fireEvent.click(screen.getByTestId("add-file-1"));
+
+            // First file should be active
+            expect(screen.getByTestId("file-tab-1-0")).toHaveClass("active");
+
+            // Switch to second file
+            fireEvent.click(screen.getByTestId("file-tab-1-1"));
+
+            // Second file should now be active
+            expect(screen.getByTestId("file-tab-1-1")).toHaveClass("active");
+        });
+
+        test("can update file name", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            const fileNameInput = screen.getByTestId(
+                "file-name-1-0"
+            ) as HTMLInputElement;
+            fireEvent.change(fileNameInput, {
+                target: { value: "solution.py" },
+            });
+
+            expect(fileNameInput.value).toBe("solution.py");
+        });
+
+        test("can change file language", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            const languageSelect = screen.getByTestId(
+                "file-language-1-0"
+            ) as HTMLSelectElement;
+            fireEvent.change(languageSelect, {
+                target: { value: "javascript" },
+            });
+
+            expect(languageSelect.value).toBe("javascript");
+        });
+
+        test("can toggle instructor file checkbox", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            const instructorCheckbox = screen.getByTestId(
+                "file-instructor-1-0"
+            ) as HTMLInputElement;
+
+            // Initially should be unchecked (starter file)
+            expect(instructorCheckbox.checked).toBe(false);
+
+            // Toggle to instructor file
+            fireEvent.click(instructorCheckbox);
+
+            expect(instructorCheckbox.checked).toBe(true);
+        });
+
+        test("can edit file content", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            const contentTextarea = screen.getByTestId(
+                "file-content-1-0"
+            ) as HTMLTextAreaElement;
+            fireEvent.change(contentTextarea, {
+                target: { value: "def hello():\n    print('Hello, World!')" },
+            });
+
+            expect(contentTextarea.value).toBe(
+                "def hello():\n    print('Hello, World!')"
+            );
+        });
+
+        test("can remove files when more than one exists", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+            fireEvent.click(screen.getByTestId("add-file-1"));
+
+            // Both files should exist
+            expect(screen.getByTestId("file-tab-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("file-tab-1-1")).toBeInTheDocument();
+
+            // Remove button should be visible with multiple files
+            expect(screen.getByTestId("remove-file-1-0")).toBeInTheDocument();
+
+            // Remove the first file
+            fireEvent.click(screen.getByTestId("remove-file-1-0"));
+
+            // First file should be gone
+            expect(screen.queryByTestId("file-tab-1-1")).not.toBeInTheDocument();
+        });
+
+        test("cannot remove file when only one exists", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            // Remove button should not exist with only one file
+            expect(
+                screen.queryByTestId("remove-file-1-0")
+            ).not.toBeInTheDocument();
+        });
+
+        test("displays instructor badge for instructor files", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            // Toggle to instructor file
+            const instructorCheckbox = screen.getByTestId(
+                "file-instructor-1-0"
+            ) as HTMLInputElement;
+            fireEvent.click(instructorCheckbox);
+
+            // Badge should appear in the file tab
+            expect(screen.getByTestId("file-tab-1-0")).toHaveTextContent(
+                "(Instructor)"
+            );
+        });
+
+        test("supports multiple language options", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            const languageSelect = screen.getByTestId("file-language-1-0");
+            const options = Array.from(languageSelect.querySelectorAll("option")).map(
+                (opt) => opt.value
+            );
+
+            // Verify all expected languages are present
+            expect(options).toContain("python");
+            expect(options).toContain("javascript");
+            expect(options).toContain("typescript");
+            expect(options).toContain("java");
+            expect(options).toContain("cpp");
+            expect(options).toContain("c");
+        });
+    });
 });
 
