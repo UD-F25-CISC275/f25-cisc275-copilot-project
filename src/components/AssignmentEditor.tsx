@@ -187,6 +187,12 @@ export function AssignmentEditor({
     const [nextItemId, setNextItemId] = useState<number>(
         items.length > 0 ? Math.max(...items.map((item) => item.id)) + 1 : 1
     );
+    const [metadata, setMetadata] = useState({
+        title: assignment.title,
+        description: assignment.description || "",
+        estimatedTime: assignment.estimatedTime || 0,
+        notes: assignment.notes || "",
+    });
 
     const addItem = (type: ItemType) => {
         const newItem: AssignmentItem = createDefaultItem(type, nextItemId);
@@ -238,7 +244,14 @@ export function AssignmentEditor({
     };
 
     const handleSave = () => {
-        onSave({ ...assignment, items });
+        onSave({
+            ...assignment,
+            title: metadata.title,
+            description: metadata.description || undefined,
+            estimatedTime: metadata.estimatedTime || undefined,
+            notes: metadata.notes || undefined,
+            items,
+        });
     };
 
     const getPages = (): AssignmentItem[][] => {
@@ -276,7 +289,7 @@ export function AssignmentEditor({
                 >
                     ← Back to Dashboard
                 </button>
-                <h1>Edit Assignment: {assignment.title}</h1>
+                <h1>Edit Assignment: {metadata.title}</h1>
                 <button
                     onClick={handleSave}
                     className="save-button"
@@ -284,6 +297,83 @@ export function AssignmentEditor({
                 >
                     Save
                 </button>
+            </div>
+
+            <div className="metadata-panel" data-testid="metadata-panel">
+                <h2>Assignment Metadata</h2>
+                <div className="metadata-fields">
+                    <div className="metadata-field">
+                        <label htmlFor="metadata-title">
+                            <strong>Title:</strong>
+                        </label>
+                        <input
+                            id="metadata-title"
+                            type="text"
+                            value={metadata.title}
+                            onChange={(e) =>
+                                setMetadata({
+                                    ...metadata,
+                                    title: e.target.value,
+                                })
+                            }
+                            placeholder="Assignment title"
+                            data-testid="metadata-title"
+                        />
+                    </div>
+                    <div className="metadata-field">
+                        <label htmlFor="metadata-description">
+                            <strong>Description:</strong>
+                        </label>
+                        <textarea
+                            id="metadata-description"
+                            value={metadata.description}
+                            onChange={(e) =>
+                                setMetadata({
+                                    ...metadata,
+                                    description: e.target.value,
+                                })
+                            }
+                            placeholder="Assignment description"
+                            data-testid="metadata-description"
+                        />
+                    </div>
+                    <div className="metadata-field">
+                        <label htmlFor="metadata-estimated-time">
+                            <strong>Estimated Time (minutes):</strong>
+                        </label>
+                        <input
+                            id="metadata-estimated-time"
+                            type="number"
+                            min="0"
+                            value={metadata.estimatedTime}
+                            onChange={(e) =>
+                                setMetadata({
+                                    ...metadata,
+                                    estimatedTime: parseInt(e.target.value, 10) || 0,
+                                })
+                            }
+                            placeholder="Estimated time in minutes"
+                            data-testid="metadata-estimated-time"
+                        />
+                    </div>
+                    <div className="metadata-field">
+                        <label htmlFor="metadata-notes">
+                            <strong>Notes (private):</strong>
+                        </label>
+                        <textarea
+                            id="metadata-notes"
+                            value={metadata.notes}
+                            onChange={(e) =>
+                                setMetadata({
+                                    ...metadata,
+                                    notes: e.target.value,
+                                })
+                            }
+                            placeholder="Private notes for instructor"
+                            data-testid="metadata-notes"
+                        />
+                    </div>
+                </div>
             </div>
 
             <div className="add-item-controls" data-testid="add-item-controls">
