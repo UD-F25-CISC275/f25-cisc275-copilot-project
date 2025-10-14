@@ -7,10 +7,12 @@ const mockAssignments: Assignment[] = [
         id: 1,
         title: "Test Assignment 1",
         description: "This is a test assignment",
+        items: [],
     },
     {
         id: 2,
         title: "Test Assignment 2",
+        items: [],
     },
 ];
 

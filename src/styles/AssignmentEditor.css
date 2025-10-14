@@ -1,0 +1,229 @@
+.assignment-editor {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #646cff;
+}
+
+.editor-header h1 {
+    margin: 0;
+    flex: 1;
+    text-align: center;
+}
+
+.back-button,
+.save-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-color: #646cff;
+    color: white;
+    font-weight: 500;
+    transition: background-color 0.25s;
+}
+
+.back-button:hover,
+.save-button:hover {
+    background-color: #535bf2;
+}
+
+.add-item-controls {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #1e1e1e;
+    border-radius: 8px;
+}
+
+.add-item-controls h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.add-item-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.add-item-buttons button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    font-weight: 500;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.add-item-buttons button:hover {
+    background-color: #646cff;
+    color: white;
+}
+
+.editor-content {
+    min-height: 300px;
+}
+
+.page-container {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+}
+
+.item-container {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+.item-container.page-break-item {
+    background-color: transparent;
+    border: none;
+    padding: 2rem 0;
+}
+
+.item-content {
+    flex: 1;
+}
+
+.item-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 40px;
+}
+
+.item-controls button {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.item-controls button:hover:not(:disabled) {
+    background-color: #646cff;
+    color: white;
+}
+
+.item-controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.item-controls .delete-button {
+    border-color: #ff4444;
+    color: #ff4444;
+}
+
+.item-controls .delete-button:hover {
+    background-color: #ff4444;
+    color: white;
+}
+
+.page-break {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.page-break-line {
+    flex: 1;
+    height: 2px;
+    background: linear-gradient(
+        to right,
+        transparent,
+        #646cff,
+        transparent
+    );
+}
+
+.page-break-label {
+    color: #646cff;
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.empty-editor {
+    text-align: center;
+    padding: 3rem;
+    color: #888;
+}
+
+.text-item-editor textarea,
+.essay-item-editor textarea,
+.code-cell-item-editor textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    color: white;
+    resize: vertical;
+}
+
+.mcq-item-editor input[type="text"],
+.fill-blank-item-editor input[type="text"],
+.code-cell-item-editor textarea:last-child {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    color: white;
+}
+
+.choices {
+    margin-top: 1rem;
+}
+
+.choice-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.choice-item input[type="text"] {
+    flex: 1;
+    margin-top: 0;
+}
+
+.choice-item input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.choice-item label {
+    font-size: 0.85rem;
+    color: #888;
+}
