@@ -25,7 +25,15 @@ function createDefaultItem(type: ItemType, id: number): AssignmentItem {
                 choiceFeedback: ["", ""],
             };
         case "fill-in-blank":
-            return { id, type: "fill-in-blank", question: "", answer: "" };
+            return {
+                id,
+                type: "fill-in-blank",
+                question: "",
+                acceptedAnswers: [""],
+                regexPattern: "",
+                caseSensitive: false,
+                trimWhitespace: true,
+            };
         case "essay":
             return { id, type: "essay", prompt: "" };
         case "code-cell":
@@ -200,15 +208,109 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                         placeholder="Enter question..."
                         data-testid={`fill-blank-question-${item.id}`}
                     />
-                    <input
-                        type="text"
-                        value={item.answer}
-                        onChange={(e) =>
-                            onUpdate({ answer: e.target.value })
-                        }
-                        placeholder="Expected answer..."
-                        data-testid={`fill-blank-answer-${item.id}`}
-                    />
+                    <div className="fill-blank-options">
+                        <label>
+                            <strong>Accepted Answers:</strong>
+                        </label>
+                        {item.acceptedAnswers.map((answer, index) => (
+                            <div
+                                key={index}
+                                className="fill-blank-answer-row"
+                            >
+                                <input
+                                    type="text"
+                                    value={answer}
+                                    onChange={(e) => {
+                                        const newAnswers = [
+                                            ...item.acceptedAnswers,
+                                        ];
+                                        newAnswers[index] = e.target.value;
+                                        onUpdate({ acceptedAnswers: newAnswers });
+                                    }}
+                                    placeholder={`Accepted answer ${index + 1}...`}
+                                    data-testid={`fill-blank-answer-${item.id}-${index}`}
+                                />
+                                <button
+                                    onClick={() => {
+                                        if (item.acceptedAnswers.length > 1) {
+                                            const newAnswers =
+                                                item.acceptedAnswers.filter(
+                                                    (_, i) => i !== index
+                                                );
+                                            onUpdate({
+                                                acceptedAnswers: newAnswers,
+                                            });
+                                        }
+                                    }}
+                                    disabled={item.acceptedAnswers.length <= 1}
+                                    className="remove-answer-button"
+                                    data-testid={`fill-blank-remove-answer-${item.id}-${index}`}
+                                    title="Remove answer"
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                        ))}
+                        <button
+                            onClick={() => {
+                                const newAnswers = [
+                                    ...item.acceptedAnswers,
+                                    "",
+                                ];
+                                onUpdate({ acceptedAnswers: newAnswers });
+                            }}
+                            className="add-answer-button"
+                            data-testid={`fill-blank-add-answer-${item.id}`}
+                        >
+                            + Add Answer
+                        </button>
+                    </div>
+                    <div className="fill-blank-regex">
+                        <label>
+                            <strong>Regex Pattern (optional):</strong>
+                        </label>
+                        <input
+                            type="text"
+                            value={item.regexPattern || ""}
+                            onChange={(e) =>
+                                onUpdate({ regexPattern: e.target.value })
+                            }
+                            placeholder="Enter regex pattern (e.g., ^\d{3}-\d{4}$)..."
+                            data-testid={`fill-blank-regex-${item.id}`}
+                        />
+                    </div>
+                    <div className="fill-blank-checkboxes">
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={item.caseSensitive || false}
+                                onChange={(e) =>
+                                    onUpdate({
+                                        caseSensitive: e.target.checked,
+                                    })
+                                }
+                                data-testid={`fill-blank-case-sensitive-${item.id}`}
+                            />
+                            Case-sensitive
+                        </label>
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={
+                                    item.trimWhitespace !== undefined
+                                        ? item.trimWhitespace
+                                        : true
+                                }
+                                onChange={(e) =>
+                                    onUpdate({
+                                        trimWhitespace: e.target.checked,
+                                    })
+                                }
+                                data-testid={`fill-blank-trim-${item.id}`}
+                            />
+                            Trim whitespace
+                        </label>
+                    </div>
                 </div>
             );
         case "essay":

@@ -382,3 +382,87 @@
 .mcq-options input[type="checkbox"] {
     cursor: pointer;
 }
+
+/* Fill-in-the-blank styles */
+.fill-blank-item-editor .fill-blank-options,
+.fill-blank-item-editor .fill-blank-regex,
+.fill-blank-item-editor .fill-blank-checkboxes {
+    margin-top: 1rem;
+}
+
+.fill-blank-item-editor .fill-blank-options label strong,
+.fill-blank-item-editor .fill-blank-regex label strong {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.fill-blank-answer-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.fill-blank-answer-row input[type="text"] {
+    flex: 1;
+    margin-top: 0;
+}
+
+.remove-answer-button {
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #ff4444;
+    background-color: transparent;
+    color: #ff4444;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.remove-answer-button:hover:not(:disabled) {
+    background-color: #ff4444;
+    color: white;
+}
+
+.remove-answer-button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.add-answer-button {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    font-weight: 500;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.add-answer-button:hover {
+    background-color: #646cff;
+    color: white;
+}
+
+.fill-blank-checkboxes {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.fill-blank-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #aaa;
+    cursor: pointer;
+}
+
+.fill-blank-checkboxes input[type="checkbox"] {
+    cursor: pointer;
+}
+

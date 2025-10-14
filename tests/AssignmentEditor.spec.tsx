@@ -881,5 +881,255 @@ describe("AssignmentEditor", () => {
                 ],
             });
         });
+
+        test("fill-in-blank item has all required fields", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Verify all fields are present
+            expect(
+                screen.getByTestId("fill-blank-question-1")
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId("fill-blank-answer-1-0")
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId("fill-blank-regex-1")
+            ).toBeInTheDocument();
+            expect(
+                screen.getByTestId("fill-blank-case-sensitive-1")
+            ).toBeInTheDocument();
+            expect(screen.getByTestId("fill-blank-trim-1")).toBeInTheDocument();
+        });
+
+        test("can add multiple accepted answers to fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Add a second answer
+            fireEvent.click(screen.getByTestId("fill-blank-add-answer-1"));
+
+            // Verify second answer field exists
+            expect(
+                screen.getByTestId("fill-blank-answer-1-1")
+            ).toBeInTheDocument();
+        });
+
+        test("can remove accepted answers from fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Add a second answer
+            fireEvent.click(screen.getByTestId("fill-blank-add-answer-1"));
+
+            // Remove the first answer button should be enabled now
+            const removeButton = screen.getByTestId(
+                "fill-blank-remove-answer-1-0"
+            );
+            expect(removeButton).not.toBeDisabled();
+
+            // Remove the first answer
+            fireEvent.click(removeButton);
+
+            // First answer should be removed, but at least one should remain
+            expect(
+                screen.queryByTestId("fill-blank-answer-1-1")
+            ).not.toBeInTheDocument();
+            expect(
+                screen.getByTestId("fill-blank-answer-1-0")
+            ).toBeInTheDocument();
+        });
+
+        test("cannot remove last accepted answer from fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Remove button should be disabled when there's only one answer
+            const removeButton = screen.getByTestId(
+                "fill-blank-remove-answer-1-0"
+            );
+            expect(removeButton).toBeDisabled();
+        });
+
+        test("can set regex pattern for fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Set regex pattern
+            const regexInput = screen.getByTestId("fill-blank-regex-1");
+            fireEvent.change(regexInput, {
+                target: { value: "^\\d{3}-\\d{4}$" },
+            });
+
+            expect(regexInput).toHaveValue("^\\d{3}-\\d{4}$");
+        });
+
+        test("can toggle case-sensitive option for fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Case-sensitive should be unchecked by default
+            const caseSensitiveCheckbox = screen.getByTestId(
+                "fill-blank-case-sensitive-1"
+            ) as HTMLInputElement;
+            expect(caseSensitiveCheckbox.checked).toBe(false);
+
+            // Toggle case-sensitive
+            fireEvent.click(caseSensitiveCheckbox);
+            expect(caseSensitiveCheckbox.checked).toBe(true);
+        });
+
+        test("can toggle trim whitespace option for fill-in-blank", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Trim whitespace should be checked by default
+            const trimCheckbox = screen.getByTestId(
+                "fill-blank-trim-1"
+            ) as HTMLInputElement;
+            expect(trimCheckbox.checked).toBe(true);
+
+            // Toggle trim whitespace
+            fireEvent.click(trimCheckbox);
+            expect(trimCheckbox.checked).toBe(false);
+        });
+
+        test("saves fill-in-blank item with all options", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add fill-in-blank item
+            fireEvent.click(screen.getByTestId("add-fill-in-blank"));
+
+            // Fill in question
+            fireEvent.change(screen.getByTestId("fill-blank-question-1"), {
+                target: { value: "What is the capital of France?" },
+            });
+
+            // Set first answer
+            fireEvent.change(screen.getByTestId("fill-blank-answer-1-0"), {
+                target: { value: "Paris" },
+            });
+
+            // Add second answer
+            fireEvent.click(screen.getByTestId("fill-blank-add-answer-1"));
+            fireEvent.change(screen.getByTestId("fill-blank-answer-1-1"), {
+                target: { value: "paris" },
+            });
+
+            // Set regex
+            fireEvent.change(screen.getByTestId("fill-blank-regex-1"), {
+                target: { value: "^[Pp]aris$" },
+            });
+
+            // Toggle case-sensitive
+            fireEvent.click(
+                screen.getByTestId("fill-blank-case-sensitive-1")
+            );
+
+            // Save
+            fireEvent.click(screen.getByTestId("save-button"));
+
+            expect(mockSave).toHaveBeenCalledWith({
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "What is the capital of France?",
+                        acceptedAnswers: ["Paris", "paris"],
+                        regexPattern: "^[Pp]aris$",
+                        caseSensitive: true,
+                        trimWhitespace: true,
+                    },
+                ],
+            });
+        });
     });
 });
+
