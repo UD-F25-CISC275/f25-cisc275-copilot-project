@@ -361,4 +361,160 @@ describe("AssignmentEditor", () => {
         expect(screen.getByTestId("essay-prompt-4")).toBeInTheDocument();
         expect(screen.getByTestId("code-prompt-5")).toBeInTheDocument();
     });
+
+    test("displays metadata panel with all fields", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        expect(screen.getByTestId("metadata-panel")).toBeInTheDocument();
+        expect(screen.getByTestId("metadata-title")).toBeInTheDocument();
+        expect(screen.getByTestId("metadata-description")).toBeInTheDocument();
+        expect(screen.getByTestId("metadata-estimated-time")).toBeInTheDocument();
+        expect(screen.getByTestId("metadata-notes")).toBeInTheDocument();
+    });
+
+    test("updates metadata title when typing", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const titleInput = screen.getByTestId("metadata-title") as HTMLInputElement;
+        fireEvent.change(titleInput, { target: { value: "New Title" } });
+
+        expect(titleInput.value).toBe("New Title");
+    });
+
+    test("updates metadata description when typing", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const descriptionTextarea = screen.getByTestId("metadata-description") as HTMLTextAreaElement;
+        fireEvent.change(descriptionTextarea, { target: { value: "New Description" } });
+
+        expect(descriptionTextarea.value).toBe("New Description");
+    });
+
+    test("updates estimated time when typing", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const estimatedTimeInput = screen.getByTestId("metadata-estimated-time") as HTMLInputElement;
+        fireEvent.change(estimatedTimeInput, { target: { value: "45" } });
+
+        expect(estimatedTimeInput.value).toBe("45");
+    });
+
+    test("updates notes when typing", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const notesTextarea = screen.getByTestId("metadata-notes") as HTMLTextAreaElement;
+        fireEvent.change(notesTextarea, { target: { value: "Private instructor notes" } });
+
+        expect(notesTextarea.value).toBe("Private instructor notes");
+    });
+
+    test("saves assignment with updated metadata", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        // Update metadata
+        const titleInput = screen.getByTestId("metadata-title") as HTMLInputElement;
+        fireEvent.change(titleInput, { target: { value: "Updated Title" } });
+
+        const descriptionTextarea = screen.getByTestId("metadata-description") as HTMLTextAreaElement;
+        fireEvent.change(descriptionTextarea, { target: { value: "Updated Description" } });
+
+        const estimatedTimeInput = screen.getByTestId("metadata-estimated-time") as HTMLInputElement;
+        fireEvent.change(estimatedTimeInput, { target: { value: "60" } });
+
+        const notesTextarea = screen.getByTestId("metadata-notes") as HTMLTextAreaElement;
+        fireEvent.change(notesTextarea, { target: { value: "Updated Notes" } });
+
+        // Save
+        const saveButton = screen.getByTestId("save-button");
+        fireEvent.click(saveButton);
+
+        expect(mockSave).toHaveBeenCalledWith({
+            ...mockAssignment,
+            title: "Updated Title",
+            description: "Updated Description",
+            estimatedTime: 60,
+            notes: "Updated Notes",
+            items: [],
+        });
+    });
+
+    test("loads existing metadata values into fields", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+        const assignmentWithMetadata: Assignment = {
+            id: 1,
+            title: "Existing Title",
+            description: "Existing Description",
+            estimatedTime: 30,
+            notes: "Existing Notes",
+            items: [],
+        };
+
+        render(
+            <AssignmentEditor
+                assignment={assignmentWithMetadata}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        expect((screen.getByTestId("metadata-title") as HTMLInputElement).value).toBe("Existing Title");
+        expect((screen.getByTestId("metadata-description") as HTMLTextAreaElement).value).toBe("Existing Description");
+        expect((screen.getByTestId("metadata-estimated-time") as HTMLInputElement).value).toBe("30");
+        expect((screen.getByTestId("metadata-notes") as HTMLTextAreaElement).value).toBe("Existing Notes");
+    });
 });
