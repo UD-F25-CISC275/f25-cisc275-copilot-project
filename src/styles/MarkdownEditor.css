@@ -1,0 +1,208 @@
+.markdown-editor {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.markdown-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    border: 1px solid #444;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.markdown-toolbar button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #fff;
+    transition: background-color 0.2s, border-color 0.2s;
+    min-width: 32px;
+    height: 32px;
+}
+
+.markdown-toolbar button:hover {
+    background-color: #444;
+    border-color: #646cff;
+}
+
+.markdown-toolbar button.active {
+    background-color: #646cff;
+    border-color: #646cff;
+}
+
+.toolbar-spacer {
+    flex: 1;
+}
+
+.markdown-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    min-height: 200px;
+}
+
+.markdown-content.preview-off {
+    grid-template-columns: 1fr;
+}
+
+.markdown-input {
+    display: flex;
+    flex-direction: column;
+}
+
+.markdown-input textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 0.75rem;
+    font-family: "Courier New", monospace;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #1a1a1a;
+    color: white;
+    resize: vertical;
+}
+
+.markdown-input textarea:focus {
+    outline: none;
+    border-color: #646cff;
+}
+
+.markdown-preview {
+    padding: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #1e1e1e;
+    color: white;
+    overflow-y: auto;
+    min-height: 200px;
+}
+
+/* Markdown preview styling */
+.markdown-preview h1 {
+    font-size: 2em;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h2 {
+    font-size: 1.5em;
+    margin-top: 0.75em;
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #444;
+    padding-bottom: 0.3em;
+}
+
+.markdown-preview h3 {
+    font-size: 1.25em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+    font-size: 1em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.markdown-preview p {
+    margin-top: 0;
+    margin-bottom: 1em;
+    line-height: 1.6;
+}
+
+.markdown-preview code {
+    padding: 0.2em 0.4em;
+    margin: 0;
+    font-size: 0.85em;
+    background-color: rgba(110, 118, 129, 0.4);
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
+}
+
+.markdown-preview pre {
+    padding: 1em;
+    overflow: auto;
+    background-color: #0d1117;
+    border-radius: 6px;
+    margin-bottom: 1em;
+}
+
+.markdown-preview pre code {
+    background-color: transparent;
+    padding: 0;
+    font-size: 1em;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+    padding-left: 2em;
+    margin-bottom: 1em;
+}
+
+.markdown-preview li {
+    margin-bottom: 0.25em;
+    line-height: 1.6;
+}
+
+.markdown-preview blockquote {
+    padding: 0 1em;
+    color: #8b949e;
+    border-left: 0.25em solid #444;
+    margin: 0 0 1em 0;
+}
+
+.markdown-preview strong {
+    font-weight: 600;
+}
+
+.markdown-preview em {
+    font-style: italic;
+}
+
+.markdown-preview a {
+    color: #58a6ff;
+    text-decoration: none;
+}
+
+.markdown-preview a:hover {
+    text-decoration: underline;
+}
+
+.markdown-preview table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1em;
+}
+
+.markdown-preview table th,
+.markdown-preview table td {
+    padding: 6px 13px;
+    border: 1px solid #444;
+}
+
+.markdown-preview table th {
+    font-weight: 600;
+    background-color: #2a2a2a;
+}
+
+.markdown-preview hr {
+    height: 0.25em;
+    padding: 0;
+    margin: 24px 0;
+    background-color: #444;
+    border: 0;
+}
