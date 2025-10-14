@@ -46,11 +46,11 @@ function createDefaultItem(type: ItemType, id: number): AssignmentItem {
 interface ItemEditorProps {
     item: AssignmentItem;
     onUpdate: (updates: Partial<AssignmentItem>) => void;
+    essayPreviewResponse?: string;
+    onEssayPreviewChange?: (value: string) => void;
 }
 
-function ItemEditor({ item, onUpdate }: ItemEditorProps) {
-    const [essayPreviewResponse, setEssayPreviewResponse] = useState<string>("");
-
+function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewChange }: ItemEditorProps) {
     switch (item.type) {
         case "text":
             return (
@@ -316,9 +316,8 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                 </div>
             );
         case "essay": {
-            const wordCount = essayPreviewResponse.trim() === "" 
-                ? 0 
-                : essayPreviewResponse.trim().split(/\s+/).length;
+            const trimmed = essayPreviewResponse.trim();
+            const wordCount = trimmed === "" ? 0 : trimmed.split(/\s+/).length;
             const charCount = essayPreviewResponse.length;
 
             return (
@@ -340,7 +339,7 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                         </label>
                         <textarea
                             value={essayPreviewResponse}
-                            onChange={(e) => setEssayPreviewResponse(e.target.value)}
+                            onChange={(e) => onEssayPreviewChange?.(e.target.value)}
                             placeholder="Type here to preview the student response area with word/character counter..."
                             data-testid={`essay-response-preview-${item.id}`}
                             className="essay-response-area"
@@ -402,6 +401,7 @@ export function AssignmentEditor({
         estimatedTime: assignment.estimatedTime || 0,
         notes: assignment.notes || "",
     });
+    const [essayPreviewResponses, setEssayPreviewResponses] = useState<Map<number, string>>(new Map());
 
     const addItem = (type: ItemType) => {
         const newItem: AssignmentItem = createDefaultItem(type, nextItemId);
@@ -411,6 +411,12 @@ export function AssignmentEditor({
 
     const deleteItem = (itemId: number) => {
         setItems(items.filter((item) => item.id !== itemId));
+        // Clean up essay preview response for deleted item
+        setEssayPreviewResponses((prev) => {
+            const next = new Map(prev);
+            next.delete(itemId);
+            return next;
+        });
     };
 
     const moveItemUp = (index: number) => {
@@ -460,6 +466,14 @@ export function AssignmentEditor({
             estimatedTime: metadata.estimatedTime || undefined,
             notes: metadata.notes || undefined,
             items,
+        });
+    };
+
+    const handleEssayPreviewChange = (itemId: number, value: string) => {
+        setEssayPreviewResponses((prev) => {
+            const next = new Map(prev);
+            next.set(itemId, value);
+            return next;
         });
     };
 
@@ -656,6 +670,10 @@ export function AssignmentEditor({
                                                 item={item}
                                                 onUpdate={(updates) =>
                                                     updateItem(item.id, updates)
+                                                }
+                                                essayPreviewResponse={essayPreviewResponses.get(item.id) || ""}
+                                                onEssayPreviewChange={(value) =>
+                                                    handleEssayPreviewChange(item.id, value)
                                                 }
                                             />
                                         </div>
