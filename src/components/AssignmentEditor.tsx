@@ -224,8 +224,15 @@ export function AssignmentEditor({
                 if (item.id !== itemId) {
                     return item;
                 }
-                // Type-safe update by reconstructing the item
-                return { ...item, ...updates, id: item.id, type: item.type };
+                // Merge updates while ensuring id and type remain immutable
+                // We use 'as AssignmentItem' because TypeScript cannot infer that
+                // preserving the type discriminator maintains the union type correctly
+                return {
+                    ...item,
+                    ...updates,
+                    id: item.id,
+                    type: item.type,
+                } as AssignmentItem;
             })
         );
     };
