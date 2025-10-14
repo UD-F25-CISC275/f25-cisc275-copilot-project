@@ -49,6 +49,8 @@ interface ItemEditorProps {
 }
 
 function ItemEditor({ item, onUpdate }: ItemEditorProps) {
+    const [essayPreviewResponse, setEssayPreviewResponse] = useState<string>("");
+
     switch (item.type) {
         case "text":
             return (
@@ -313,7 +315,12 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                     </div>
                 </div>
             );
-        case "essay":
+        case "essay": {
+            const wordCount = essayPreviewResponse.trim() === "" 
+                ? 0 
+                : essayPreviewResponse.trim().split(/\s+/).length;
+            const charCount = essayPreviewResponse.length;
+
             return (
                 <div className="essay-item-editor">
                     <label>
@@ -327,8 +334,30 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                         placeholder="Enter essay prompt..."
                         data-testid={`essay-prompt-${item.id}`}
                     />
+                    <div className="essay-preview-section">
+                        <label>
+                            <strong>Sample Student Response (Preview):</strong>
+                        </label>
+                        <textarea
+                            value={essayPreviewResponse}
+                            onChange={(e) => setEssayPreviewResponse(e.target.value)}
+                            placeholder="Type here to preview the student response area with word/character counter..."
+                            data-testid={`essay-response-preview-${item.id}`}
+                            className="essay-response-area"
+                        />
+                        <div className="essay-counter" data-testid={`essay-counter-${item.id}`}>
+                            <span data-testid={`essay-word-count-${item.id}`}>
+                                Words: {wordCount}
+                            </span>
+                            {" | "}
+                            <span data-testid={`essay-char-count-${item.id}`}>
+                                Characters: {charCount}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             );
+        }
         case "code-cell":
             return (
                 <div className="code-cell-item-editor">

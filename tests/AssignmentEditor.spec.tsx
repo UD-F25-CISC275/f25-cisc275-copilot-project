@@ -1131,5 +1131,171 @@ describe("AssignmentEditor", () => {
             });
         });
     });
+
+    describe("Essay item with word/character counter", () => {
+        test("displays essay item with prompt and preview response area", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+            const assignmentWithEssay: Assignment = {
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "essay",
+                        prompt: "Explain the concept of recursion",
+                    },
+                ],
+            };
+
+            render(
+                <AssignmentEditor
+                    assignment={assignmentWithEssay}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            expect(screen.getByTestId("essay-prompt-1")).toBeInTheDocument();
+            expect(
+                screen.getByTestId("essay-response-preview-1")
+            ).toBeInTheDocument();
+            expect(screen.getByTestId("essay-counter-1")).toBeInTheDocument();
+        });
+
+        test("displays correct word and character count for empty response", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+            const assignmentWithEssay: Assignment = {
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "essay",
+                        prompt: "Explain recursion",
+                    },
+                ],
+            };
+
+            render(
+                <AssignmentEditor
+                    assignment={assignmentWithEssay}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            expect(screen.getByTestId("essay-word-count-1")).toHaveTextContent(
+                "Words: 0"
+            );
+            expect(screen.getByTestId("essay-char-count-1")).toHaveTextContent(
+                "Characters: 0"
+            );
+        });
+
+        test("updates word and character count when typing in preview response", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+            const assignmentWithEssay: Assignment = {
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "essay",
+                        prompt: "Explain recursion",
+                    },
+                ],
+            };
+
+            render(
+                <AssignmentEditor
+                    assignment={assignmentWithEssay}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            const responseArea = screen.getByTestId("essay-response-preview-1");
+            fireEvent.change(responseArea, {
+                target: { value: "Recursion is a programming technique" },
+            });
+
+            expect(screen.getByTestId("essay-word-count-1")).toHaveTextContent(
+                "Words: 5"
+            );
+            expect(screen.getByTestId("essay-char-count-1")).toHaveTextContent(
+                "Characters: 36"
+            );
+        });
+
+        test("counts words correctly with multiple spaces", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+            const assignmentWithEssay: Assignment = {
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "essay",
+                        prompt: "Explain recursion",
+                    },
+                ],
+            };
+
+            render(
+                <AssignmentEditor
+                    assignment={assignmentWithEssay}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            const responseArea = screen.getByTestId("essay-response-preview-1");
+            fireEvent.change(responseArea, {
+                target: { value: "Hello   world   test" },
+            });
+
+            expect(screen.getByTestId("essay-word-count-1")).toHaveTextContent(
+                "Words: 3"
+            );
+            expect(screen.getByTestId("essay-char-count-1")).toHaveTextContent(
+                "Characters: 20"
+            );
+        });
+
+        test("handles whitespace-only text correctly", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+            const assignmentWithEssay: Assignment = {
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "essay",
+                        prompt: "Explain recursion",
+                    },
+                ],
+            };
+
+            render(
+                <AssignmentEditor
+                    assignment={assignmentWithEssay}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            const responseArea = screen.getByTestId("essay-response-preview-1");
+            fireEvent.change(responseArea, {
+                target: { value: "   \n\n   " },
+            });
+
+            expect(screen.getByTestId("essay-word-count-1")).toHaveTextContent(
+                "Words: 0"
+            );
+            expect(screen.getByTestId("essay-char-count-1")).toHaveTextContent(
+                "Characters: 8"
+            );
+        });
+    });
 });
 
