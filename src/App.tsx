@@ -23,7 +23,9 @@ const sampleAssignments: Assignment[] = [
 export function App() {
     const [assignments, setAssignments] =
         useState<Assignment[]>(sampleAssignments);
-    const [nextId, setNextId] = useState<number>(4);
+    const [nextId, setNextId] = useState<number>(
+        Math.max(...sampleAssignments.map((a) => a.id)) + 1
+    );
 
     const handleEdit = (assignmentId: number) => {
         console.log(`Edit assignment ${assignmentId}`);
