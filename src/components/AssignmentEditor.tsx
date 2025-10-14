@@ -219,12 +219,13 @@ export function AssignmentEditor({
     };
 
     const updateItem = (itemId: number, updates: Partial<AssignmentItem>) => {
-        setItems(
-            items.map((item) => {
-                if (item.id === itemId) {
-                    return { ...item, ...updates } as AssignmentItem;
+        setItems((prevItems) =>
+            prevItems.map((item) => {
+                if (item.id !== itemId) {
+                    return item;
                 }
-                return item;
+                // Type-safe update by reconstructing the item
+                return { ...item, ...updates, id: item.id, type: item.type };
             })
         );
     };
