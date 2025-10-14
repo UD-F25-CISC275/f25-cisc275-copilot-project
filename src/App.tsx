@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import { Dashboard } from "./components/Dashboard";
 import type { Assignment } from "./types/Assignment";
@@ -21,8 +20,6 @@ const sampleAssignments: Assignment[] = [
 ];
 
 export function App() {
-    const [assignments] = useState<Assignment[]>(sampleAssignments);
-
     const handleEdit = (assignmentId: number) => {
         console.log(`Edit assignment ${assignmentId}`);
         // TODO: Navigate to editor view
@@ -35,7 +32,7 @@ export function App() {
 
     return (
         <Dashboard
-            assignments={assignments}
+            assignments={sampleAssignments}
             onEdit={handleEdit}
             onTake={handleTake}
         />
