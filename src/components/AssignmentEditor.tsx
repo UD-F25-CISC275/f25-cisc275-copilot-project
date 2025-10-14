@@ -19,8 +19,10 @@ function createDefaultItem(type: ItemType, id: number): AssignmentItem {
                 id,
                 type: "multiple-choice",
                 question: "",
-                choices: ["", "", "", ""],
+                choices: ["", ""],
                 correctAnswers: [],
+                shuffle: false,
+                choiceFeedback: ["", ""],
             };
         case "fill-in-blank":
             return { id, type: "fill-in-blank", question: "", answer: "" };
@@ -69,41 +71,118 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                         placeholder="Enter question..."
                         data-testid={`mcq-question-${item.id}`}
                     />
+                    <div className="mcq-options">
+                        <label>
+                            <input
+                                type="checkbox"
+                                checked={item.shuffle || false}
+                                onChange={(e) =>
+                                    onUpdate({ shuffle: e.target.checked })
+                                }
+                                data-testid={`mcq-shuffle-${item.id}`}
+                            />
+                            Shuffle choices for students
+                        </label>
+                    </div>
                     <div className="choices">
                         {item.choices.map((choice, index) => (
                             <div key={index} className="choice-item">
+                                <div className="choice-input-row">
+                                    <input
+                                        type="text"
+                                        value={choice}
+                                        onChange={(e) => {
+                                            const newChoices = [...item.choices];
+                                            newChoices[index] = e.target.value;
+                                            onUpdate({ choices: newChoices });
+                                        }}
+                                        placeholder={`Choice ${index + 1}`}
+                                        data-testid={`mcq-choice-${item.id}-${index}`}
+                                    />
+                                    <input
+                                        type="checkbox"
+                                        checked={item.correctAnswers.includes(
+                                            index
+                                        )}
+                                        onChange={(e) => {
+                                            const newCorrect = e.target.checked
+                                                ? [...item.correctAnswers, index]
+                                                : item.correctAnswers.filter(
+                                                      (i) => i !== index
+                                                  );
+                                            onUpdate({
+                                                correctAnswers: newCorrect,
+                                            });
+                                        }}
+                                        data-testid={`mcq-correct-${item.id}-${index}`}
+                                    />
+                                    <label>Correct</label>
+                                    <button
+                                        onClick={() => {
+                                            if (item.choices.length > 2) {
+                                                const newChoices = item.choices.filter(
+                                                    (_, i) => i !== index
+                                                );
+                                                const newCorrect = item.correctAnswers
+                                                    .filter((i) => i !== index)
+                                                    .map((i) => (i > index ? i - 1 : i));
+                                                const newFeedback = item.choiceFeedback
+                                                    ? item.choiceFeedback.filter(
+                                                          (_, i) => i !== index
+                                                      )
+                                                    : [];
+                                                onUpdate({
+                                                    choices: newChoices,
+                                                    correctAnswers: newCorrect,
+                                                    choiceFeedback: newFeedback,
+                                                });
+                                            }
+                                        }}
+                                        disabled={item.choices.length <= 2}
+                                        className="remove-choice-button"
+                                        data-testid={`mcq-remove-choice-${item.id}-${index}`}
+                                        title="Remove choice"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
                                 <input
                                     type="text"
-                                    value={choice}
+                                    value={
+                                        item.choiceFeedback
+                                            ? item.choiceFeedback[index] || ""
+                                            : ""
+                                    }
                                     onChange={(e) => {
-                                        const newChoices = [...item.choices];
-                                        newChoices[index] = e.target.value;
-                                        onUpdate({ choices: newChoices });
+                                        const newFeedback = item.choiceFeedback
+                                            ? [...item.choiceFeedback]
+                                            : Array(item.choices.length).fill("");
+                                        newFeedback[index] = e.target.value;
+                                        onUpdate({ choiceFeedback: newFeedback });
                                     }}
-                                    placeholder={`Choice ${index + 1}`}
-                                    data-testid={`mcq-choice-${item.id}-${index}`}
+                                    placeholder="Optional feedback for this choice..."
+                                    className="choice-feedback"
+                                    data-testid={`mcq-feedback-${item.id}-${index}`}
                                 />
-                                <input
-                                    type="checkbox"
-                                    checked={item.correctAnswers.includes(
-                                        index
-                                    )}
-                                    onChange={(e) => {
-                                        const newCorrect = e.target.checked
-                                            ? [...item.correctAnswers, index]
-                                            : item.correctAnswers.filter(
-                                                  (i) => i !== index
-                                              );
-                                        onUpdate({
-                                            correctAnswers: newCorrect,
-                                        });
-                                    }}
-                                    data-testid={`mcq-correct-${item.id}-${index}`}
-                                />
-                                <label>Correct</label>
                             </div>
                         ))}
                     </div>
+                    <button
+                        onClick={() => {
+                            const newChoices = [...item.choices, ""];
+                            const newFeedback = item.choiceFeedback
+                                ? [...item.choiceFeedback, ""]
+                                : Array(newChoices.length).fill("");
+                            onUpdate({
+                                choices: newChoices,
+                                choiceFeedback: newFeedback,
+                            });
+                        }}
+                        className="add-choice-button"
+                        data-testid={`mcq-add-choice-${item.id}`}
+                    >
+                        + Add Choice
+                    </button>
                 </div>
             );
         case "fill-in-blank":

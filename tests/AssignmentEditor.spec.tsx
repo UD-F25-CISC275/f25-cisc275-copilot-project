@@ -517,4 +517,369 @@ describe("AssignmentEditor", () => {
         expect((screen.getByTestId("metadata-estimated-time") as HTMLInputElement).value).toBe("30");
         expect((screen.getByTestId("metadata-notes") as HTMLTextAreaElement).value).toBe("Existing Notes");
     });
+
+    describe("Multiple Choice Question Features", () => {
+        test("adds a multiple choice item with default 2 choices", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Should have 2 default choices
+            expect(screen.getByTestId("mcq-choice-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("mcq-choice-1-1")).toBeInTheDocument();
+        });
+
+        test("adds a new choice when add choice button is clicked", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Initially 2 choices
+            expect(screen.getByTestId("mcq-choice-1-0")).toBeInTheDocument();
+            expect(screen.getByTestId("mcq-choice-1-1")).toBeInTheDocument();
+
+            // Add a third choice
+            const addChoiceButton = screen.getByTestId("mcq-add-choice-1");
+            fireEvent.click(addChoiceButton);
+
+            // Should now have 3 choices
+            expect(screen.getByTestId("mcq-choice-1-2")).toBeInTheDocument();
+        });
+
+        test("removes a choice when remove button is clicked", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Add a third choice first
+            fireEvent.click(screen.getByTestId("mcq-add-choice-1"));
+            expect(screen.getByTestId("mcq-choice-1-2")).toBeInTheDocument();
+
+            // Remove the third choice
+            const removeButton = screen.getByTestId("mcq-remove-choice-1-2");
+            fireEvent.click(removeButton);
+
+            // Should no longer have the third choice
+            expect(screen.queryByTestId("mcq-choice-1-2")).not.toBeInTheDocument();
+        });
+
+        test("disables remove button when only 2 choices remain", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // With 2 choices, remove buttons should be disabled
+            const removeButton0 = screen.getByTestId("mcq-remove-choice-1-0");
+            const removeButton1 = screen.getByTestId("mcq-remove-choice-1-1");
+
+            expect(removeButton0).toBeDisabled();
+            expect(removeButton1).toBeDisabled();
+        });
+
+        test("enables remove button when more than 2 choices exist", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Add a third choice
+            fireEvent.click(screen.getByTestId("mcq-add-choice-1"));
+
+            // Remove buttons should now be enabled
+            const removeButton0 = screen.getByTestId("mcq-remove-choice-1-0");
+            const removeButton1 = screen.getByTestId("mcq-remove-choice-1-1");
+            const removeButton2 = screen.getByTestId("mcq-remove-choice-1-2");
+
+            expect(removeButton0).not.toBeDisabled();
+            expect(removeButton1).not.toBeDisabled();
+            expect(removeButton2).not.toBeDisabled();
+        });
+
+        test("toggles shuffle option", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            const shuffleCheckbox = screen.getByTestId("mcq-shuffle-1") as HTMLInputElement;
+            
+            // Initially unchecked
+            expect(shuffleCheckbox.checked).toBe(false);
+
+            // Click to enable shuffle
+            fireEvent.click(shuffleCheckbox);
+            expect(shuffleCheckbox.checked).toBe(true);
+
+            // Click again to disable shuffle
+            fireEvent.click(shuffleCheckbox);
+            expect(shuffleCheckbox.checked).toBe(false);
+        });
+
+        test("adds feedback to choices", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            const feedbackInput0 = screen.getByTestId("mcq-feedback-1-0") as HTMLInputElement;
+            const feedbackInput1 = screen.getByTestId("mcq-feedback-1-1") as HTMLInputElement;
+
+            // Add feedback to first choice
+            fireEvent.change(feedbackInput0, { target: { value: "Good answer!" } });
+            expect(feedbackInput0.value).toBe("Good answer!");
+
+            // Add feedback to second choice
+            fireEvent.change(feedbackInput1, { target: { value: "Try again." } });
+            expect(feedbackInput1.value).toBe("Try again.");
+        });
+
+        test("updates choice text", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            const choiceInput = screen.getByTestId("mcq-choice-1-0") as HTMLInputElement;
+            fireEvent.change(choiceInput, { target: { value: "Option A" } });
+
+            expect(choiceInput.value).toBe("Option A");
+        });
+
+        test("marks a choice as correct", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            const correctCheckbox = screen.getByTestId("mcq-correct-1-0") as HTMLInputElement;
+            
+            // Initially unchecked
+            expect(correctCheckbox.checked).toBe(false);
+
+            // Mark as correct
+            fireEvent.click(correctCheckbox);
+            expect(correctCheckbox.checked).toBe(true);
+        });
+
+        test("allows multiple correct answers", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            const correctCheckbox0 = screen.getByTestId("mcq-correct-1-0") as HTMLInputElement;
+            const correctCheckbox1 = screen.getByTestId("mcq-correct-1-1") as HTMLInputElement;
+
+            // Mark both as correct
+            fireEvent.click(correctCheckbox0);
+            fireEvent.click(correctCheckbox1);
+
+            expect(correctCheckbox0.checked).toBe(true);
+            expect(correctCheckbox1.checked).toBe(true);
+        });
+
+        test("updates correct answer indices when choice is removed", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+            
+            // Add a third choice
+            fireEvent.click(screen.getByTestId("mcq-add-choice-1"));
+            
+            // Mark second and third as correct
+            fireEvent.click(screen.getByTestId("mcq-correct-1-1"));
+            fireEvent.click(screen.getByTestId("mcq-correct-1-2"));
+
+            expect((screen.getByTestId("mcq-correct-1-1") as HTMLInputElement).checked).toBe(true);
+            expect((screen.getByTestId("mcq-correct-1-2") as HTMLInputElement).checked).toBe(true);
+
+            // Remove the first choice
+            fireEvent.click(screen.getByTestId("mcq-remove-choice-1-0"));
+
+            // The previously second choice (now first) should still be marked correct
+            expect((screen.getByTestId("mcq-correct-1-0") as HTMLInputElement).checked).toBe(true);
+            // The previously third choice (now second) should still be marked correct
+            expect((screen.getByTestId("mcq-correct-1-1") as HTMLInputElement).checked).toBe(true);
+        });
+
+        test("maintains feedback when adding new choices", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Add feedback to first choice
+            const feedbackInput0 = screen.getByTestId("mcq-feedback-1-0") as HTMLInputElement;
+            fireEvent.change(feedbackInput0, { target: { value: "Great!" } });
+
+            // Add a third choice
+            fireEvent.click(screen.getByTestId("mcq-add-choice-1"));
+
+            // Original feedback should still be there
+            expect((screen.getByTestId("mcq-feedback-1-0") as HTMLInputElement).value).toBe("Great!");
+            // New choice should have empty feedback
+            expect((screen.getByTestId("mcq-feedback-1-2") as HTMLInputElement).value).toBe("");
+        });
+
+        test("saves MCQ with all features", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Set question
+            fireEvent.change(screen.getByTestId("mcq-question-1"), { 
+                target: { value: "What is 2+2?" } 
+            });
+
+            // Set choices
+            fireEvent.change(screen.getByTestId("mcq-choice-1-0"), { 
+                target: { value: "3" } 
+            });
+            fireEvent.change(screen.getByTestId("mcq-choice-1-1"), { 
+                target: { value: "4" } 
+            });
+
+            // Mark correct answer
+            fireEvent.click(screen.getByTestId("mcq-correct-1-1"));
+
+            // Add feedback
+            fireEvent.change(screen.getByTestId("mcq-feedback-1-0"), { 
+                target: { value: "Incorrect" } 
+            });
+            fireEvent.change(screen.getByTestId("mcq-feedback-1-1"), { 
+                target: { value: "Correct!" } 
+            });
+
+            // Enable shuffle
+            fireEvent.click(screen.getByTestId("mcq-shuffle-1"));
+
+            // Save
+            fireEvent.click(screen.getByTestId("save-button"));
+
+            expect(mockSave).toHaveBeenCalledWith({
+                ...mockAssignment,
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4"],
+                        correctAnswers: [1],
+                        shuffle: true,
+                        choiceFeedback: ["Incorrect", "Correct!"],
+                    },
+                ],
+            });
+        });
+    });
 });

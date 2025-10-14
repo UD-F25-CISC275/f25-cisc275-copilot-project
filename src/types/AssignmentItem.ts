@@ -21,6 +21,8 @@ export interface MultipleChoiceItem extends BaseItem {
     question: string;
     choices: string[];
     correctAnswers: number[];
+    shuffle?: boolean;
+    choiceFeedback?: string[];
 }
 
 export interface FillInBlankItem extends BaseItem {
