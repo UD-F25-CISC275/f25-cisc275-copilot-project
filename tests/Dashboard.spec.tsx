@@ -18,12 +18,14 @@ describe("Dashboard", () => {
     test("displays all assignments", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
 
         render(
             <Dashboard
                 assignments={mockAssignments}
                 onEdit={mockEdit}
                 onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
             />
         );
 
@@ -38,9 +40,15 @@ describe("Dashboard", () => {
     test("displays message when no assignments available", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
 
         render(
-            <Dashboard assignments={[]} onEdit={mockEdit} onTake={mockTake} />
+            <Dashboard
+                assignments={[]}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+            />
         );
 
         expect(
@@ -51,12 +59,14 @@ describe("Dashboard", () => {
     test("calls onEdit when Edit button is clicked", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
 
         render(
             <Dashboard
                 assignments={mockAssignments}
                 onEdit={mockEdit}
                 onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
             />
         );
 
@@ -69,12 +79,14 @@ describe("Dashboard", () => {
     test("calls onTake when Take button is clicked", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
 
         render(
             <Dashboard
                 assignments={mockAssignments}
                 onEdit={mockEdit}
                 onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
             />
         );
 
@@ -87,12 +99,14 @@ describe("Dashboard", () => {
     test("displays Edit and Take buttons for each assignment", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
 
         render(
             <Dashboard
                 assignments={mockAssignments}
                 onEdit={mockEdit}
                 onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
             />
         );
 
@@ -102,5 +116,44 @@ describe("Dashboard", () => {
 
         expect(editButtons).toHaveLength(2);
         expect(takeButtons).toHaveLength(2);
+    });
+
+    test("displays New Assignment button", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+            />
+        );
+
+        const newButton = screen.getByTestId("new-assignment-button");
+        expect(newButton).toBeInTheDocument();
+        expect(newButton).toHaveTextContent("New Assignment");
+    });
+
+    test("calls onCreateAssignment when New Assignment button is clicked", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+            />
+        );
+
+        const newButton = screen.getByTestId("new-assignment-button");
+        fireEvent.click(newButton);
+
+        expect(mockCreateAssignment).toHaveBeenCalledTimes(1);
     });
 });

@@ -4,12 +4,25 @@ interface DashboardProps {
     assignments: Assignment[];
     onEdit: (assignmentId: number) => void;
     onTake: (assignmentId: number) => void;
+    onCreateAssignment: () => void;
 }
 
-export function Dashboard({ assignments, onEdit, onTake }: DashboardProps) {
+export function Dashboard({
+    assignments,
+    onEdit,
+    onTake,
+    onCreateAssignment,
+}: DashboardProps) {
     return (
         <div className="dashboard">
             <h1>Assignment Dashboard</h1>
+            <button
+                onClick={onCreateAssignment}
+                className="new-assignment-button"
+                data-testid="new-assignment-button"
+            >
+                New Assignment
+            </button>
             <div className="assignment-list">
                 {assignments.length === 0 ? (
                     <p>No assignments available.</p>

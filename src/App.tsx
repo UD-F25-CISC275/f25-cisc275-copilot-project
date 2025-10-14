@@ -1,3 +1,4 @@
+import { useState } from "react";
 import "./App.css";
 import { Dashboard } from "./components/Dashboard";
 import type { Assignment } from "./types/Assignment";
@@ -20,6 +21,10 @@ const sampleAssignments: Assignment[] = [
 ];
 
 export function App() {
+    const [assignments, setAssignments] =
+        useState<Assignment[]>(sampleAssignments);
+    const [nextId, setNextId] = useState<number>(4);
+
     const handleEdit = (assignmentId: number) => {
         console.log(`Edit assignment ${assignmentId}`);
         // TODO: Navigate to editor view
@@ -30,11 +35,21 @@ export function App() {
         // TODO: Navigate to taker view
     };
 
+    const handleCreateAssignment = () => {
+        const newAssignment: Assignment = {
+            id: nextId,
+            title: "New Assignment",
+        };
+        setAssignments([...assignments, newAssignment]);
+        setNextId(nextId + 1);
+    };
+
     return (
         <Dashboard
-            assignments={sampleAssignments}
+            assignments={assignments}
             onEdit={handleEdit}
             onTake={handleTake}
+            onCreateAssignment={handleCreateAssignment}
         />
     );
 }
