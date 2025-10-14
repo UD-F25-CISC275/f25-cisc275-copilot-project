@@ -9,6 +9,24 @@
   text-align: center;
 }
 
+.new-assignment-button {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background-color: #646cff;
+  color: white;
+  font-weight: 500;
+  transition: background-color 0.25s, border-color 0.25s;
+}
+
+.new-assignment-button:hover {
+  background-color: #535bf2;
+  border-color: #535bf2;
+}
+
 .assignment-list {
   display: flex;
   flex-direction: column;
