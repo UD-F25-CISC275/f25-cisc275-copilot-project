@@ -23,7 +23,7 @@ This is a React + TypeScript web application for creating and delivering interac
 
 These constraints are **non-negotiable** and enforced by the course:
 
-1. **TypeScript Types:** Must use explicit types. `any`, `unknown`, and other typeless types are **forbidden** and will fail linting.
+1. **TypeScript Types:** Must use explicit types. `any` and `unknown` types are **forbidden** and will fail linting. While `unknown` is typically type-safe, this course requires more specific typing to encourage better type definition practices.
 2. **React Hooks Only:** Class-based components are not allowed.
 3. **Linting:** All code must pass ESLint checks. Cannot override linter settings or disable rules.
 4. **Testing:** Main branch must always pass all tests. High code coverage is expected.
@@ -127,7 +127,7 @@ npm run cy:run
 ### ESLint Rules (Enforced)
 The project uses strict TypeScript ESLint rules:
 
-- **No `any` type:** `@typescript-eslint/no-explicit-any` is commented out, but `@typescript-eslint/no-restricted-types` explicitly forbids `any` and `unknown`
+- **No `any` or `unknown` types:** `@typescript-eslint/no-restricted-types` explicitly forbids both `any` and `unknown`. While `unknown` is typically considered type-safe, this course requires more specific typing as a pedagogical choice to encourage explicit type definitions.
 - **No unused variables:** Must clean up all unused imports and variables
 - **Type safety:** All functions must have explicit return types when not inferred
 - **No unsafe operations:** Cannot assign `any` values, return `any` values, or perform unsafe operations
