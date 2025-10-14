@@ -1,7 +1,13 @@
-import { useState, useRef, useMemo, useCallback } from "react";
+import { useState, useRef } from "react";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import "../styles/MarkdownEditor.css";
+
+// Configure marked once at module level
+marked.setOptions({
+    breaks: true,
+    gfm: true,
+});
 
 interface MarkdownEditorProps {
     value: string;
@@ -19,20 +25,8 @@ export function MarkdownEditor({
     const [showPreview, setShowPreview] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Configure marked once
-    useMemo(() => {
-        marked.setOptions({
-            breaks: true,
-            gfm: true,
-        });
-    }, []);
-
-    const getTextarea = useCallback((): HTMLTextAreaElement | null => {
-        return textareaRef.current;
-    }, []);
-
     const insertMarkdown = (before: string, after: string = "") => {
-        const textarea = getTextarea();
+        const textarea = textareaRef.current;
         if (textarea === null) {
             return;
         }
@@ -58,7 +52,7 @@ export function MarkdownEditor({
     };
 
     const insertAtLineStart = (prefix: string) => {
-        const textarea = getTextarea();
+        const textarea = textareaRef.current;
         if (textarea === null) {
             return;
         }
