@@ -28,7 +28,10 @@ export interface MultipleChoiceItem extends BaseItem {
 export interface FillInBlankItem extends BaseItem {
     type: "fill-in-blank";
     question: string;
-    answer: string;
+    acceptedAnswers: string[];
+    regexPattern?: string;
+    caseSensitive?: boolean;
+    trimWhitespace?: boolean;
 }
 
 export interface EssayItem extends BaseItem {
