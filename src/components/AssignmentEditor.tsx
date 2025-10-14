@@ -349,7 +349,7 @@ export function AssignmentEditor({
                             onChange={(e) =>
                                 setMetadata({
                                     ...metadata,
-                                    estimatedTime: parseInt(e.target.value) || 0,
+                                    estimatedTime: parseInt(e.target.value, 10) || 0,
                                 })
                             }
                             placeholder="Estimated time in minutes"
