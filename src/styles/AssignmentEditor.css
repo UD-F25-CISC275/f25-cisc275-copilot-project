@@ -497,3 +497,158 @@
     margin: 0 0.5rem;
 }
 
+/* Multi-file code cell styles */
+.code-files-section {
+    margin-top: 1rem;
+    border: 1px solid #444;
+    border-radius: 4px;
+    background-color: #1a1a1a;
+    padding: 1rem;
+}
+
+.code-files-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.code-files-header strong {
+    color: #fff;
+}
+
+.add-file-button {
+    padding: 0.4rem 0.8rem;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.add-file-button:hover {
+    background-color: #0052a3;
+}
+
+.file-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.file-tab {
+    padding: 0.5rem 1rem;
+    background-color: #2a2a2a;
+    color: #ccc;
+    border: 1px solid #444;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.file-tab:hover {
+    background-color: #333;
+}
+
+.file-tab.active {
+    background-color: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.instructor-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #ffa500;
+}
+
+.file-editor {
+    background-color: #0f0f0f;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.file-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.file-control-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.file-control-row label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ccc;
+}
+
+.file-control-row input[type="text"] {
+    padding: 0.4rem;
+    background-color: #1a1a1a;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    min-width: 150px;
+}
+
+.file-control-row select {
+    padding: 0.4rem;
+    background-color: #1a1a1a;
+    color: white;
+    border: 1px solid #444;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.file-control-row input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.remove-file-button {
+    padding: 0.4rem 0.8rem;
+    background-color: #cc0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-left: auto;
+}
+
+.remove-file-button:hover {
+    background-color: #990000;
+}
+
+.code-editor-textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 0.75rem;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 0.9rem;
+    background-color: #0a0a0a;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    border-radius: 4px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.code-editor-textarea:focus {
+    outline: none;
+    border-color: #0066cc;
+}
+
+

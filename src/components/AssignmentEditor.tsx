@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Assignment } from "../types/Assignment";
-import type { AssignmentItem, ItemType } from "../types/AssignmentItem";
+import type { AssignmentItem, ItemType, CodeFile } from "../types/AssignmentItem";
 import { MarkdownEditor } from "./MarkdownEditor";
 import "../styles/AssignmentEditor.css";
 
@@ -37,7 +37,19 @@ function createDefaultItem(type: ItemType, id: number): AssignmentItem {
         case "essay":
             return { id, type: "essay", prompt: "" };
         case "code-cell":
-            return { id, type: "code-cell", prompt: "", starterCode: "" };
+            return {
+                id,
+                type: "code-cell",
+                prompt: "",
+                files: [
+                    {
+                        name: "main.py",
+                        language: "python",
+                        content: "",
+                        isInstructorFile: false,
+                    },
+                ],
+            };
         case "page-break":
             return { id, type: "page-break" };
     }
@@ -48,6 +60,198 @@ interface ItemEditorProps {
     onUpdate: (updates: Partial<AssignmentItem>) => void;
     essayPreviewResponse?: string;
     onEssayPreviewChange?: (value: string) => void;
+}
+
+interface CodeCellEditorProps {
+    item: AssignmentItem & { type: "code-cell" };
+    onUpdate: (updates: Partial<AssignmentItem>) => void;
+}
+
+function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
+    // Initialize files array if it doesn't exist (backward compatibility)
+    const files =
+        item.files.length > 0
+            ? item.files
+            : [
+                  {
+                      name: "main.py",
+                      language: "python",
+                      content: item.starterCode || "",
+                      isInstructorFile: false,
+                  },
+              ];
+
+    const [selectedFileIndex, setSelectedFileIndex] = useState(0);
+
+    const addFile = () => {
+        const newFiles = [
+            ...files,
+            {
+                name: `file${files.length + 1}.py`,
+                language: "python",
+                content: "",
+                isInstructorFile: false,
+            },
+        ];
+        onUpdate({ files: newFiles });
+    };
+
+    const removeFile = (index: number) => {
+        if (files.length > 1) {
+            const newFiles = files.filter((_, i) => i !== index);
+            onUpdate({ files: newFiles });
+            if (selectedFileIndex >= newFiles.length) {
+                setSelectedFileIndex(newFiles.length - 1);
+            }
+        }
+    };
+
+    const updateFile = (index: number, updates: Partial<CodeFile>) => {
+        const newFiles = files.map((file, i) =>
+            i === index ? { ...file, ...updates } : file
+        );
+        onUpdate({ files: newFiles });
+    };
+
+    return (
+        <div className="code-cell-item-editor">
+            <label>
+                <strong>Code Cell:</strong>
+            </label>
+            <textarea
+                value={item.prompt}
+                onChange={(e) => onUpdate({ prompt: e.target.value })}
+                placeholder="Enter coding prompt..."
+                data-testid={`code-prompt-${item.id}`}
+            />
+
+            <div className="code-files-section">
+                <div className="code-files-header">
+                    <strong>Files:</strong>
+                    <button
+                        type="button"
+                        onClick={addFile}
+                        className="add-file-button"
+                        data-testid={`add-file-${item.id}`}
+                    >
+                        + Add File
+                    </button>
+                </div>
+
+                <div className="file-tabs">
+                    {files.map((file, index) => (
+                        <button
+                            key={index}
+                            type="button"
+                            className={`file-tab ${selectedFileIndex === index ? "active" : ""}`}
+                            onClick={() => setSelectedFileIndex(index)}
+                            data-testid={`file-tab-${item.id}-${index}`}
+                        >
+                            {file.name}
+                            {file.isInstructorFile && (
+                                <span className="instructor-badge">
+                                    {" "}
+                                    (Instructor)
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </div>
+
+                {files.length > 0 && (
+                    <div
+                        className="file-editor"
+                        data-testid={`file-editor-${item.id}`}
+                    >
+                        <div className="file-controls">
+                            <div className="file-control-row">
+                                <label>
+                                    File Name:
+                                    <input
+                                        type="text"
+                                        value={files[selectedFileIndex].name}
+                                        onChange={(e) =>
+                                            updateFile(selectedFileIndex, {
+                                                name: e.target.value,
+                                            })
+                                        }
+                                        data-testid={`file-name-${item.id}-${selectedFileIndex}`}
+                                    />
+                                </label>
+                                <label>
+                                    Language:
+                                    <select
+                                        value={
+                                            files[selectedFileIndex].language
+                                        }
+                                        onChange={(e) =>
+                                            updateFile(selectedFileIndex, {
+                                                language: e.target.value,
+                                            })
+                                        }
+                                        data-testid={`file-language-${item.id}-${selectedFileIndex}`}
+                                    >
+                                        <option value="python">Python</option>
+                                        <option value="javascript">
+                                            JavaScript
+                                        </option>
+                                        <option value="typescript">
+                                            TypeScript
+                                        </option>
+                                        <option value="java">Java</option>
+                                        <option value="cpp">C++</option>
+                                        <option value="c">C</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div className="file-control-row">
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            files[selectedFileIndex]
+                                                .isInstructorFile
+                                        }
+                                        onChange={(e) =>
+                                            updateFile(selectedFileIndex, {
+                                                isInstructorFile:
+                                                    e.target.checked,
+                                            })
+                                        }
+                                        data-testid={`file-instructor-${item.id}-${selectedFileIndex}`}
+                                    />
+                                    Instructor File (hidden from students)
+                                </label>
+                                {files.length > 1 && (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            removeFile(selectedFileIndex)
+                                        }
+                                        className="remove-file-button"
+                                        data-testid={`remove-file-${item.id}-${selectedFileIndex}`}
+                                    >
+                                        Remove File
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        <textarea
+                            value={files[selectedFileIndex].content}
+                            onChange={(e) =>
+                                updateFile(selectedFileIndex, {
+                                    content: e.target.value,
+                                })
+                            }
+                            placeholder="Enter code..."
+                            className="code-editor-textarea"
+                            data-testid={`file-content-${item.id}-${selectedFileIndex}`}
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }
 
 function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewChange }: ItemEditorProps) {
@@ -358,29 +562,7 @@ function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewC
             );
         }
         case "code-cell":
-            return (
-                <div className="code-cell-item-editor">
-                    <label>
-                        <strong>Code Cell:</strong>
-                    </label>
-                    <textarea
-                        value={item.prompt}
-                        onChange={(e) =>
-                            onUpdate({ prompt: e.target.value })
-                        }
-                        placeholder="Enter coding prompt..."
-                        data-testid={`code-prompt-${item.id}`}
-                    />
-                    <textarea
-                        value={item.starterCode}
-                        onChange={(e) =>
-                            onUpdate({ starterCode: e.target.value })
-                        }
-                        placeholder="Enter starter code..."
-                        data-testid={`code-starter-${item.id}`}
-                    />
-                </div>
-            );
+            return <CodeCellEditor item={item} onUpdate={onUpdate} />;
         default:
             return null;
     }

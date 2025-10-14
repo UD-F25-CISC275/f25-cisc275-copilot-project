@@ -39,10 +39,19 @@ export interface EssayItem extends BaseItem {
     prompt: string;
 }
 
+export interface CodeFile {
+    name: string;
+    language: string;
+    content: string;
+    isInstructorFile: boolean; // If true, hidden from students; if false, shown as starter file
+}
+
 export interface CodeCellItem extends BaseItem {
     type: "code-cell";
     prompt: string;
-    starterCode: string;
+    files: CodeFile[];
+    // Legacy fields kept for backward compatibility
+    starterCode?: string;
 }
 
 export interface PageBreakItem extends BaseItem {
