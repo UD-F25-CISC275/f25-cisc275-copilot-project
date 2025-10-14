@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useMemo, useCallback } from "react";
 import { marked } from "marked";
 import DOMPurify from "isomorphic-dompurify";
 import "../styles/MarkdownEditor.css";
@@ -17,21 +17,23 @@ export function MarkdownEditor({
     testId,
 }: MarkdownEditorProps) {
     const [showPreview, setShowPreview] = useState(true);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // Configure marked for security
-    marked.setOptions({
-        breaks: true,
-        gfm: true,
-    });
+    // Configure marked once
+    useMemo(() => {
+        marked.setOptions({
+            breaks: true,
+            gfm: true,
+        });
+    }, []);
+
+    const getTextarea = useCallback((): HTMLTextAreaElement | null => {
+        return textareaRef.current;
+    }, []);
 
     const insertMarkdown = (before: string, after: string = "") => {
-        const textarea = document.querySelector(
-            `[data-testid="${testId}"]`
-        );
-        if (
-            textarea === null ||
-            !(textarea instanceof HTMLTextAreaElement)
-        ) {
+        const textarea = getTextarea();
+        if (textarea === null) {
             return;
         }
 
@@ -53,6 +55,18 @@ export function MarkdownEditor({
             const newCursorPos = start + before.length + selectedText.length;
             textarea.setSelectionRange(newCursorPos, newCursorPos);
         }, 0);
+    };
+
+    const insertAtLineStart = (prefix: string) => {
+        const textarea = getTextarea();
+        if (textarea === null) {
+            return;
+        }
+        const start = textarea.selectionStart;
+        const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+        const newText =
+            value.substring(0, lineStart) + prefix + value.substring(lineStart);
+        onChange(newText);
     };
 
     const renderMarkdown = (markdown: string): string => {
@@ -94,24 +108,7 @@ export function MarkdownEditor({
                 </button>
                 <button
                     type="button"
-                    onClick={() => {
-                        const textarea = document.querySelector(
-                            `[data-testid="${testId}"]`
-                        );
-                        if (
-                            textarea === null ||
-                            !(textarea instanceof HTMLTextAreaElement)
-                        ) {
-                            return;
-                        }
-                        const start = textarea.selectionStart;
-                        const lineStart = value.lastIndexOf("\n", start - 1) + 1;
-                        const newText =
-                            value.substring(0, lineStart) +
-                            "# " +
-                            value.substring(lineStart);
-                        onChange(newText);
-                    }}
+                    onClick={() => insertAtLineStart("# ")}
                     title="Heading"
                     data-testid={`${testId}-heading`}
                 >
@@ -119,24 +116,7 @@ export function MarkdownEditor({
                 </button>
                 <button
                     type="button"
-                    onClick={() => {
-                        const textarea = document.querySelector(
-                            `[data-testid="${testId}"]`
-                        );
-                        if (
-                            textarea === null ||
-                            !(textarea instanceof HTMLTextAreaElement)
-                        ) {
-                            return;
-                        }
-                        const start = textarea.selectionStart;
-                        const lineStart = value.lastIndexOf("\n", start - 1) + 1;
-                        const newText =
-                            value.substring(0, lineStart) +
-                            "- " +
-                            value.substring(lineStart);
-                        onChange(newText);
-                    }}
+                    onClick={() => insertAtLineStart("- ")}
                     title="List"
                     data-testid={`${testId}-list`}
                 >
@@ -150,13 +130,16 @@ export function MarkdownEditor({
                     title="Toggle Preview"
                     data-testid={`${testId}-preview-toggle`}
                 >
-                    {showPreview ? "👁️ Preview" : "👁️ Preview"}
+                    {showPreview ? "👁️ Hide Preview" : "👁️ Show Preview"}
                 </button>
             </div>
 
-            <div className="markdown-content">
+            <div
+                className={`markdown-content ${showPreview ? "" : "preview-off"}`}
+            >
                 <div className="markdown-input">
                     <textarea
+                        ref={textareaRef}
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         placeholder={placeholder}

@@ -83,19 +83,22 @@ describe("MarkdownEditor", () => {
 
         // Preview should be visible initially
         expect(screen.getByTestId("test-markdown-preview")).toBeInTheDocument();
+        const toggleButton = screen.getByTestId("test-markdown-preview-toggle");
+        expect(toggleButton.textContent).toContain("Hide Preview");
 
         // Click toggle button
-        const toggleButton = screen.getByTestId("test-markdown-preview-toggle");
         fireEvent.click(toggleButton);
 
         // Preview should be hidden
         expect(screen.queryByTestId("test-markdown-preview")).not.toBeInTheDocument();
+        expect(toggleButton.textContent).toContain("Show Preview");
 
         // Click toggle button again
         fireEvent.click(toggleButton);
 
         // Preview should be visible again
         expect(screen.getByTestId("test-markdown-preview")).toBeInTheDocument();
+        expect(toggleButton.textContent).toContain("Hide Preview");
     });
 
     test("inserts bold markdown when bold button is clicked", () => {
