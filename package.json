@@ -17,6 +17,11 @@
         "cy:run": "cypress run"
     },
     "dependencies": {
+        "@types/dompurify": "^3.0.5",
+        "@types/marked": "^5.0.2",
+        "dompurify": "^3.3.0",
+        "isomorphic-dompurify": "^2.29.0",
+        "marked": "^16.4.0",
         "react": "^19.1.1",
         "react-dom": "^19.1.1"
     },

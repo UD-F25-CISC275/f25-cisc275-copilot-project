@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, ItemType } from "../types/AssignmentItem";
+import { MarkdownEditor } from "./MarkdownEditor";
 import "../styles/AssignmentEditor.css";
 
 interface AssignmentEditorProps {
@@ -45,13 +46,11 @@ function ItemEditor({ item, onUpdate }: ItemEditorProps) {
                     <label>
                         <strong>Text Block:</strong>
                     </label>
-                    <textarea
+                    <MarkdownEditor
                         value={item.content}
-                        onChange={(e) =>
-                            onUpdate({ content: e.target.value })
-                        }
-                        placeholder="Enter text content..."
-                        data-testid={`text-content-${item.id}`}
+                        onChange={(value) => onUpdate({ content: value })}
+                        placeholder="Enter text content using markdown..."
+                        testId={`text-content-${item.id}`}
                     />
                 </div>
             );
