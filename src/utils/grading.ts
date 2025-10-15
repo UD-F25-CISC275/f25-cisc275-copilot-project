@@ -26,7 +26,7 @@ export function gradeMCQ(
     selectedAnswers: number[]
 ): MCQGradingResult {
     // Check if answer checking is enabled (default is true)
-    const answerCheckEnabled = item.gradingConfig?.enableAnswerCheck !== false;
+    const answerCheckEnabled = item.gradingConfig?.enableAnswerCheck ?? true;
     
     if (!answerCheckEnabled) {
         // If answer checking is disabled, just return the selections without grading
@@ -66,7 +66,7 @@ export function gradeFillInBlank(
     studentAnswer: string
 ): FillInBlankGradingResult {
     // Check if answer checking is enabled (default is true)
-    const answerCheckEnabled = item.gradingConfig?.enableAnswerCheck !== false;
+    const answerCheckEnabled = item.gradingConfig?.enableAnswerCheck ?? true;
     
     if (!answerCheckEnabled) {
         return {
@@ -93,9 +93,9 @@ export function gradeFillInBlank(
                 studentAnswer,
                 acceptedAnswers: item.acceptedAnswers,
             };
-        } catch (error) {
+        } catch {
             // If regex is invalid, fall back to string comparison
-            console.warn("Invalid regex pattern:", item.regexPattern, error);
+            // Silently handle invalid regex - instructors will see the issue in the editor
         }
     }
 
