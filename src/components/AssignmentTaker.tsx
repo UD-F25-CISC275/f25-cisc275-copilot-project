@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Assignment } from "../types/Assignment";
-import type { AssignmentItem, CodeFile } from "../types/AssignmentItem";
+import type { AssignmentItem, CodeFile, PageBreakItem } from "../types/AssignmentItem";
 import { gradeMCQ, gradeFillInBlank, type MCQGradingResult, type FillInBlankGradingResult } from "../utils/grading";
 import { usePyodide } from "../hooks/usePyodide";
 import "../styles/AssignmentTaker.css";
@@ -42,13 +42,47 @@ interface TestExecutionState {
     result: string;
 }
 
+interface Page {
+    items: AssignmentItem[];
+    pageBreak?: PageBreakItem;
+}
+
 export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [answers, setAnswers] = useState<StudentAnswer[]>([]);
     const [submittedResults, setSubmittedResults] = useState<SubmittedResult[]>([]);
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [codeExecutionStates, setCodeExecutionStates] = useState<CodeExecutionState[]>([]);
     const [testExecutionStates, setTestExecutionStates] = useState<TestExecutionState[]>([]);
+    const [currentPage, setCurrentPage] = useState(0);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
+
+    // Split items into pages based on page-break items
+    const pages: Page[] = [];
+    let currentPageItems: AssignmentItem[] = [];
+    
+    for (const item of assignment.items) {
+        if (item.type === "page-break") {
+            // Page break ends the current page
+            // TypeScript knows item is PageBreakItem here
+            pages.push({
+                items: currentPageItems,
+                pageBreak: item
+            });
+            currentPageItems = [];
+        } else {
+            currentPageItems.push(item);
+        }
+    }
+    
+    // Add remaining items as the last page (no page break at the end)
+    if (currentPageItems.length > 0 || pages.length === 0) {
+        pages.push({
+            items: currentPageItems,
+            pageBreak: undefined
+        });
+    }
+    
+    const finalPages = pages;
 
     const updateMCQAnswer = (itemId: number, choiceIndex: number, checked: boolean) => {
         setAnswers((prev) => {
@@ -195,10 +229,49 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         return submittedResults.find((r) => r.itemId === itemId);
     };
 
+    // Check if current page allows navigation to next page (for gating)
+    const canNavigateToNextPage = (): boolean => {
+        if (currentPage >= finalPages.length - 1) {
+            return false; // Already on last page
+        }
+        
+        // Check if current page has gating enabled (requireAllCorrect on the page-break)
+        const currentPageData = finalPages[currentPage];
+        const pageBreak = currentPageData.pageBreak;
+        
+        if (pageBreak?.requireAllCorrect) {
+            // Check if all auto-graded items on current page have been submitted and passed
+            if (!hasSubmitted) {
+                return false; // Must submit first
+            }
+            
+            const currentPageItems = currentPageData.items;
+            for (const item of currentPageItems) {
+                if (item.type === "multiple-choice") {
+                    const result = getSubmittedResult(item.id);
+                    if (!result?.mcqResult?.passed) {
+                        return false; // MCQ not passed
+                    }
+                } else if (item.type === "fill-in-blank") {
+                    const result = getSubmittedResult(item.id);
+                    if (!result?.fillInBlankResult?.passed) {
+                        return false; // Fill-in-blank not passed
+                    }
+                }
+                // Essay and code-cell with rubric don't block (manual grading)
+                // Code-cell with unit tests could be checked here if we stored test results
+            }
+        }
+        
+        return true;
+    };
+
     const handleSubmit = () => {
         const results: SubmittedResult[] = [];
+        const currentPageData = finalPages[currentPage];
+        const currentPageItems = currentPageData.items;
 
-        assignment.items.forEach((item) => {
+        currentPageItems.forEach((item) => {
             if (item.type === "multiple-choice") {
                 const answer = getAnswer(item.id);
                 const mcqResult = gradeMCQ(
@@ -216,7 +289,11 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
             }
         });
 
-        setSubmittedResults(results);
+        setSubmittedResults((prev) => {
+            // Merge with existing results (keep results from other pages)
+            const newResults = [...prev.filter(r => !results.find(nr => nr.itemId === r.itemId))];
+            return [...newResults, ...results];
+        });
         setHasSubmitted(true);
     };
 
@@ -537,21 +614,60 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 {assignment.description && (
                     <p className="assignment-description">{assignment.description}</p>
                 )}
+                {finalPages.length > 1 && (
+                    <div className="page-indicator" data-testid="page-indicator">
+                        Page {currentPage + 1} of {finalPages.length}
+                    </div>
+                )}
             </div>
 
             <div className="taker-items">
-                {assignment.items.map((item) => renderItem(item))}
+                {finalPages[currentPage]?.items.map((item) => renderItem(item))}
+                {finalPages[currentPage]?.pageBreak && (
+                    <div className="taker-item page-break">
+                        <hr />
+                    </div>
+                )}
             </div>
 
             <div className="taker-footer">
-                <button
-                    onClick={handleSubmit}
-                    disabled={hasSubmitted}
-                    className="submit-button"
-                    data-testid="submit-button"
-                >
-                    {hasSubmitted ? "Submitted" : "Submit Assignment"}
-                </button>
+                <div className="navigation-buttons">
+                    {currentPage > 0 && (
+                        <button
+                            onClick={() => {
+                                setCurrentPage(currentPage - 1);
+                                setHasSubmitted(false); // Reset submit for new page
+                            }}
+                            className="previous-button"
+                            data-testid="previous-button"
+                        >
+                            ← Previous Page
+                        </button>
+                    )}
+                    
+                    <button
+                        onClick={handleSubmit}
+                        disabled={hasSubmitted}
+                        className="submit-button"
+                        data-testid="submit-button"
+                    >
+                        {hasSubmitted ? "Submitted" : (finalPages.length > 1 ? "Submit Page" : "Submit Assignment")}
+                    </button>
+                    
+                    {currentPage < finalPages.length - 1 && (
+                        <button
+                            onClick={() => {
+                                setCurrentPage(currentPage + 1);
+                                setHasSubmitted(false); // Reset submit for new page
+                            }}
+                            disabled={!canNavigateToNextPage()}
+                            className="next-button"
+                            data-testid="next-button"
+                        >
+                            Next Page →
+                        </button>
+                    )}
+                </div>
             </div>
         </div>
     );
