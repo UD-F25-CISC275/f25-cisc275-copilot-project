@@ -1,3 +1,5 @@
+import type { GradingConfig } from "./GradingConfig";
+
 export type ItemType =
     | "text"
     | "multiple-choice"
@@ -9,6 +11,7 @@ export type ItemType =
 export interface BaseItem {
     id: number;
     type: ItemType;
+    gradingConfig?: GradingConfig;
 }
 
 export interface TextItem extends BaseItem {
