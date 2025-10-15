@@ -21,6 +21,8 @@ export function processEssayGradingPrompt(
     }
 
     const context: PromptContext = {
+        // Both 'prompt' and 'question' are provided as aliases for the essay prompt
+        // to support different instructor preferences in their AI prompts
         prompt: item.prompt,
         question: item.prompt,
         studentAnswer: studentAnswer,
@@ -47,6 +49,8 @@ export function processCodeGradingPrompt(
     }
 
     const context: PromptContext = {
+        // Both 'prompt' and 'question' are provided as aliases for the code prompt
+        // to support different instructor preferences in their AI prompts
         prompt: item.prompt,
         question: item.prompt,
         studentAnswer: studentCode,
