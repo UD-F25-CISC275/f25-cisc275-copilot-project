@@ -957,6 +957,21 @@ export function AssignmentEditor({
                                                 Page Break
                                             </span>
                                             <div className="page-break-line"></div>
+                                            <div className="page-break-options">
+                                                <label>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={item.requireAllCorrect || false}
+                                                        onChange={(e) =>
+                                                            updateItem(item.id, {
+                                                                requireAllCorrect: e.target.checked,
+                                                            })
+                                                        }
+                                                        data-testid={`page-break-require-all-correct-${item.id}`}
+                                                    />
+                                                    <span>Require all correct before next page</span>
+                                                </label>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="item-content">
