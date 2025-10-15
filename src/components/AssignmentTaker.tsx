@@ -54,6 +54,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [codeExecutionStates, setCodeExecutionStates] = useState<CodeExecutionState[]>([]);
     const [testExecutionStates, setTestExecutionStates] = useState<TestExecutionState[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
+    const [attemptCounts, setAttemptCounts] = useState<Record<number, number>>({});
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     // Split items into pages based on page-break items
@@ -295,6 +296,12 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
             return [...newResults, ...results];
         });
         setHasSubmitted(true);
+        
+        // Increment attempt counter for current page
+        setAttemptCounts((prev) => ({
+            ...prev,
+            [currentPage]: (prev[currentPage] || 0) + 1
+        }));
     };
 
     const renderItem = (item: AssignmentItem) => {
@@ -617,6 +624,11 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 {finalPages.length > 1 && (
                     <div className="page-indicator" data-testid="page-indicator">
                         Page {currentPage + 1} of {finalPages.length}
+                    </div>
+                )}
+                {(attemptCounts[currentPage] || 0) > 0 && (
+                    <div className="attempt-counter" data-testid="attempt-counter">
+                        Attempt {attemptCounts[currentPage]}
                     </div>
                 )}
             </div>
