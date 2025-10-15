@@ -59,6 +59,7 @@ export interface CodeCellItem extends BaseItem {
 
 export interface PageBreakItem extends BaseItem {
     type: "page-break";
+    requireAllCorrect?: boolean; // If true, next page is disabled until all auto-graded items on current page pass
 }
 
 export type AssignmentItem =
