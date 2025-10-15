@@ -952,11 +952,13 @@ export function AssignmentEditor({
                                 >
                                     {item.type === "page-break" ? (
                                         <div className="page-break">
-                                            <div className="page-break-line"></div>
-                                            <span className="page-break-label">
-                                                Page Break
-                                            </span>
-                                            <div className="page-break-line"></div>
+                                            <div>
+                                                <div className="page-break-line"></div>
+                                                <span className="page-break-label">
+                                                    Page Break
+                                                </span>
+                                                <div className="page-break-line"></div>
+                                            </div>
                                             <div className="page-break-options">
                                                 <label>
                                                     <input
