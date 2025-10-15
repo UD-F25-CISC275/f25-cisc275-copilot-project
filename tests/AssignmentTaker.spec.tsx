@@ -328,7 +328,7 @@ describe("AssignmentTaker", () => {
         expect(screen.getByText("Essay items require manual grading")).toBeInTheDocument();
     });
 
-    test("renders code cell items with note", () => {
+    test("renders code cell items with code editor", () => {
         const assignment: Assignment = {
             id: 1,
             title: "Test Assignment",
@@ -337,7 +337,14 @@ describe("AssignmentTaker", () => {
                     id: 1,
                     type: "code-cell",
                     prompt: "Write some code",
-                    files: [],
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "",
+                            isInstructorFile: false,
+                        },
+                    ],
                 },
             ],
         };
@@ -345,7 +352,7 @@ describe("AssignmentTaker", () => {
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
 
         expect(screen.getByText("Write some code")).toBeInTheDocument();
-        expect(screen.getByText("Code execution not available in taker view")).toBeInTheDocument();
+        expect(screen.getByText("main.py")).toBeInTheDocument();
     });
 
     test("renders page breaks", () => {
@@ -642,5 +649,189 @@ describe("AssignmentTaker", () => {
 
         expect(screen.getByText("Level 1")).toBeInTheDocument();
         expect(screen.getByText("Level 2")).toBeInTheDocument();
+    });
+
+    test("renders code cell with editable code", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write a hello world function",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "# Your code here",
+                            isInstructorFile: false,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByText("Write a hello world function")).toBeInTheDocument();
+        expect(screen.getByTestId("code-file-1-0")).toBeInTheDocument();
+        expect(screen.getByText("main.py")).toBeInTheDocument();
+    });
+
+    test("code cell allows editing code content", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write a hello world function",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "",
+                            isInstructorFile: false,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        const textarea = screen.getByTestId("code-file-1-0") as HTMLTextAreaElement;
+        fireEvent.change(textarea, { target: { value: "print('hello')" } });
+
+        expect(textarea.value).toBe("print('hello')");
+    });
+
+    test("code cell shows run code button for python files", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write code",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "print('hello')",
+                            isInstructorFile: false,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByTestId("run-code-1")).toBeInTheDocument();
+    });
+
+    test("code cell shows run tests button when test file is configured", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write code",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "def add(a, b): return a + b",
+                            isInstructorFile: false,
+                        },
+                        {
+                            name: "test.py",
+                            language: "python",
+                            content: "assert add(2, 3) == 5",
+                            isInstructorFile: true,
+                        },
+                    ],
+                    gradingConfig: {
+                        testFileName: "test.py",
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByTestId("run-tests-1")).toBeInTheDocument();
+    });
+
+    test("code cell does not show run tests button when no test file is configured", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write code",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "print('hello')",
+                            isInstructorFile: false,
+                        },
+                    ],
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.queryByTestId("run-tests-1")).not.toBeInTheDocument();
+    });
+
+    test("code cell only shows student files for editing", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write code",
+                    files: [
+                        {
+                            name: "main.py",
+                            language: "python",
+                            content: "# Student code",
+                            isInstructorFile: false,
+                        },
+                        {
+                            name: "test.py",
+                            language: "python",
+                            content: "# Hidden test",
+                            isInstructorFile: true,
+                        },
+                    ],
+                    gradingConfig: {
+                        testFileName: "test.py",
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Should show main.py
+        expect(screen.getByText("main.py")).toBeInTheDocument();
+        expect(screen.getByTestId("code-file-1-0")).toBeInTheDocument();
+        
+        // Should not show test.py in editor
+        expect(screen.queryByText("test.py")).not.toBeInTheDocument();
     });
 });

@@ -1,8 +1,16 @@
 import { useState } from "react";
 import type { Assignment } from "../types/Assignment";
-import type { AssignmentItem } from "../types/AssignmentItem";
+import type { AssignmentItem, CodeFile } from "../types/AssignmentItem";
 import { gradeMCQ, gradeFillInBlank, type MCQGradingResult, type FillInBlankGradingResult } from "../utils/grading";
+import { usePyodide } from "../hooks/usePyodide";
 import "../styles/AssignmentTaker.css";
+
+// Python code to redirect stdout for capturing print statements
+const PYTHON_STDOUT_REDIRECT = `
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+`;
 
 interface AssignmentTakerProps {
     assignment: Assignment;
@@ -13,6 +21,7 @@ interface StudentAnswer {
     itemId: number;
     mcqAnswer?: number[];
     fillInBlankAnswer?: string;
+    codeFiles?: CodeFile[];
 }
 
 interface SubmittedResult {
@@ -21,10 +30,25 @@ interface SubmittedResult {
     fillInBlankResult?: FillInBlankGradingResult;
 }
 
+interface CodeExecutionState {
+    itemId: number;
+    isExecuting: boolean;
+    result: string;
+}
+
+interface TestExecutionState {
+    itemId: number;
+    isExecuting: boolean;
+    result: string;
+}
+
 export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [answers, setAnswers] = useState<StudentAnswer[]>([]);
     const [submittedResults, setSubmittedResults] = useState<SubmittedResult[]>([]);
     const [hasSubmitted, setHasSubmitted] = useState(false);
+    const [codeExecutionStates, setCodeExecutionStates] = useState<CodeExecutionState[]>([]);
+    const [testExecutionStates, setTestExecutionStates] = useState<TestExecutionState[]>([]);
+    const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     const updateMCQAnswer = (itemId: number, choiceIndex: number, checked: boolean) => {
         setAnswers((prev) => {
@@ -52,8 +76,119 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         ]);
     };
 
+    const updateCodeFiles = (itemId: number, files: CodeFile[]) => {
+        setAnswers((prev) => [
+            ...prev.filter((a) => a.itemId !== itemId),
+            { itemId, codeFiles: files },
+        ]);
+    };
+
     const getAnswer = (itemId: number): StudentAnswer | undefined => {
         return answers.find((a) => a.itemId === itemId);
+    };
+
+    const getCodeExecutionState = (itemId: number): CodeExecutionState | undefined => {
+        return codeExecutionStates.find((s) => s.itemId === itemId);
+    };
+
+    const getTestExecutionState = (itemId: number): TestExecutionState | undefined => {
+        return testExecutionStates.find((s) => s.itemId === itemId);
+    };
+
+    const executeCode = (itemId: number, files: CodeFile[]) => {
+        if (!pyodide) {
+            setCodeExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: "Error: Python runtime not loaded yet. Please wait..." }
+            ]);
+            return;
+        }
+
+        setCodeExecutionStates((prev) => [
+            ...prev.filter((s) => s.itemId !== itemId),
+            { itemId, isExecuting: true, result: "" }
+        ]);
+
+        try {
+            // Redirect stdout to capture print statements
+            pyodide.runPython(PYTHON_STDOUT_REDIRECT);
+
+            // Execute all non-instructor files
+            const studentFiles = files.filter(f => !f.isInstructorFile);
+            for (const file of studentFiles) {
+                if (file.language === "python" && file.content.trim()) {
+                    pyodide.runPython(file.content);
+                }
+            }
+
+            // Get the output
+            const output = String(pyodide.runPython("sys.stdout.getvalue()"));
+            setCodeExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: output || "Code executed successfully (no output)" }
+            ]);
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            setCodeExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: `Error: ${errorMsg}` }
+            ]);
+        }
+    };
+
+    const executeTests = (itemId: number, files: CodeFile[], testFileName: string) => {
+        if (!pyodide) {
+            setTestExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: "Error: Python runtime not loaded yet. Please wait..." }
+            ]);
+            return;
+        }
+
+        setTestExecutionStates((prev) => [
+            ...prev.filter((s) => s.itemId !== itemId),
+            { itemId, isExecuting: true, result: "" }
+        ]);
+
+        try {
+            // Redirect stdout to capture print statements
+            pyodide.runPython(PYTHON_STDOUT_REDIRECT);
+
+            // Execute all non-instructor files first (student code)
+            const studentFiles = files.filter(f => !f.isInstructorFile);
+            for (const file of studentFiles) {
+                if (file.language === "python" && file.content.trim()) {
+                    pyodide.runPython(file.content);
+                }
+            }
+
+            // Execute the test file
+            const testFile = files.find(f => f.name === testFileName && f.isInstructorFile);
+            if (!testFile) {
+                setTestExecutionStates((prev) => [
+                    ...prev.filter((s) => s.itemId !== itemId),
+                    { itemId, isExecuting: false, result: `Error: Test file '${testFileName}' not found` }
+                ]);
+                return;
+            }
+
+            if (testFile.language === "python" && testFile.content.trim()) {
+                pyodide.runPython(testFile.content);
+            }
+
+            // Get the output
+            const output = String(pyodide.runPython("sys.stdout.getvalue()"));
+            setTestExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: output || "Tests executed (no output)" }
+            ]);
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            setTestExecutionStates((prev) => [
+                ...prev.filter((s) => s.itemId !== itemId),
+                { itemId, isExecuting: false, result: `Error: ${errorMsg}` }
+            ]);
+        }
     };
 
     const getSubmittedResult = (itemId: number): SubmittedResult | undefined => {
@@ -247,10 +382,107 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
 
         if (item.type === "code-cell") {
             const rubric = item.gradingConfig?.rubric;
+            const testFileName = item.gradingConfig?.testFileName;
+            
+            // Initialize student files from item or answer
+            // Always filter out instructor files for security (even from saved answers)
+            const answer = getAnswer(item.id);
+            const allFiles = answer?.codeFiles || item.files;
+            const studentFiles = allFiles.filter(f => !f.isInstructorFile);
+            
+            // Get execution states
+            const codeExecState = getCodeExecutionState(item.id);
+            const testExecState = getTestExecutionState(item.id);
+            
+            // Determine if Python execution is available
+            const hasPythonFiles = studentFiles.some(f => f.language === "python");
+            
             return (
                 <div key={item.id} className="taker-item code-cell-item">
                     <div className="prompt">{item.prompt}</div>
-                    <div className="code-note">Code execution not available in taker view</div>
+                    
+                    {/* File editor */}
+                    <div className="code-files-section">
+                        {studentFiles.map((file, index) => (
+                            <div key={index} className="file-editor">
+                                <div className="file-header">
+                                    <strong>{file.name}</strong>
+                                    <span className="file-language">({file.language})</span>
+                                </div>
+                                <textarea
+                                    value={file.content}
+                                    onChange={(e) => {
+                                        const updatedFiles = studentFiles.map((f, i) => 
+                                            i === index ? { ...f, content: e.target.value } : f
+                                        );
+                                        updateCodeFiles(item.id, [
+                                            ...updatedFiles,
+                                            ...item.files.filter(f => f.isInstructorFile)
+                                        ]);
+                                    }}
+                                    placeholder="Enter your code..."
+                                    className="code-editor-textarea"
+                                    data-testid={`code-file-${item.id}-${index}`}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Execution buttons */}
+                    {hasPythonFiles && (
+                        <div className="code-execution-section">
+                            <button
+                                type="button"
+                                onClick={() => executeCode(item.id, answer?.codeFiles || item.files)}
+                                disabled={codeExecState?.isExecuting || pyodideLoading}
+                                className="run-code-button"
+                                data-testid={`run-code-${item.id}`}
+                            >
+                                {codeExecState?.isExecuting
+                                    ? "Running..."
+                                    : pyodideLoading
+                                      ? "Loading Python..."
+                                      : "▶ Run Code"}
+                            </button>
+                            
+                            {testFileName && (
+                                <button
+                                    type="button"
+                                    onClick={() => executeTests(item.id, answer?.codeFiles || item.files, testFileName)}
+                                    disabled={testExecState?.isExecuting || pyodideLoading}
+                                    className="run-tests-button"
+                                    data-testid={`run-tests-${item.id}`}
+                                >
+                                    {testExecState?.isExecuting
+                                        ? "Running Tests..."
+                                        : pyodideLoading
+                                          ? "Loading Python..."
+                                          : "🧪 Run Tests"}
+                                </button>
+                            )}
+                            
+                            {pyodideError && (
+                                <div className="execution-error" data-testid={`pyodide-error-${item.id}`}>
+                                    Failed to load Python runtime: {pyodideError}
+                                </div>
+                            )}
+                            
+                            {codeExecState?.result && (
+                                <div className="execution-result" data-testid={`execution-result-${item.id}`}>
+                                    <strong>Output:</strong>
+                                    <pre>{codeExecState.result}</pre>
+                                </div>
+                            )}
+                            
+                            {testExecState?.result && (
+                                <div className="test-result" data-testid={`test-result-${item.id}`}>
+                                    <strong>Test Results:</strong>
+                                    <pre>{testExecState.result}</pre>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
                     {rubric && hasSubmitted && (
                         <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
                             <div className="feedback-status awaiting">
