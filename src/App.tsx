@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { Dashboard } from "./components/Dashboard";
 import { AssignmentEditor } from "./components/AssignmentEditor";
+import { AssignmentTaker } from "./components/AssignmentTaker";
 import type { Assignment } from "./types/Assignment";
 
 const sampleAssignments: Assignment[] = [
@@ -30,10 +31,13 @@ export function App() {
     const [nextId, setNextId] = useState<number>(
         Math.max(...sampleAssignments.map((a) => a.id)) + 1
     );
-    const [currentView, setCurrentView] = useState<"dashboard" | "editor">(
+    const [currentView, setCurrentView] = useState<"dashboard" | "editor" | "taker">(
         "dashboard"
     );
     const [editingAssignmentId, setEditingAssignmentId] = useState<
+        number | null
+    >(null);
+    const [takingAssignmentId, setTakingAssignmentId] = useState<
         number | null
     >(null);
 
@@ -43,8 +47,8 @@ export function App() {
     };
 
     const handleTake = (assignmentId: number) => {
-        console.log(`Take assignment ${assignmentId}`);
-        // TODO: Navigate to taker view
+        setTakingAssignmentId(assignmentId);
+        setCurrentView("taker");
     };
 
     const handleCreateAssignment = () => {
@@ -70,10 +74,15 @@ export function App() {
     const handleBackToDashboard = () => {
         setCurrentView("dashboard");
         setEditingAssignmentId(null);
+        setTakingAssignmentId(null);
     };
 
     const editingAssignment = assignments.find(
         (a) => a.id === editingAssignmentId
+    );
+
+    const takingAssignment = assignments.find(
+        (a) => a.id === takingAssignmentId
     );
 
     return (
@@ -90,6 +99,12 @@ export function App() {
                 <AssignmentEditor
                     assignment={editingAssignment}
                     onSave={handleSaveAssignment}
+                    onBack={handleBackToDashboard}
+                />
+            )}
+            {currentView === "taker" && takingAssignment && (
+                <AssignmentTaker
+                    assignment={takingAssignment}
                     onBack={handleBackToDashboard}
                 />
             )}
