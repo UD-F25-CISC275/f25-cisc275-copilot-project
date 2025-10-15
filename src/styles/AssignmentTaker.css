@@ -228,3 +228,91 @@
     cursor: not-allowed;
     background-color: #646cff;
 }
+
+/* Rubric Feedback Styles */
+.rubric-feedback {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+.feedback-status {
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.feedback-status.awaiting {
+    background-color: rgba(251, 191, 36, 0.1);
+    color: #fbbf24;
+    border: 1px solid #fbbf24;
+}
+
+.rubric-info strong {
+    font-size: 1.1rem;
+    color: #646cff;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.rubric-description {
+    color: #aaa;
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+    font-style: italic;
+}
+
+.rubric-criteria-display {
+    margin-top: 1rem;
+}
+
+.rubric-criteria-display h4 {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+    color: #ddd;
+}
+
+.rubric-criteria-display ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.rubric-criteria-display li {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+    border-left: 3px solid #646cff;
+    color: #ddd;
+}
+
+.criteria-name {
+    font-weight: 500;
+    color: white;
+}
+
+.criteria-desc {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.criteria-points {
+    color: #646cff;
+    font-weight: 500;
+    float: right;
+}
+
+.max-points {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+    background-color: #1e1e1e;
+    border-radius: 4px;
+    text-align: right;
+    font-weight: 500;
+    color: #646cff;
+}
