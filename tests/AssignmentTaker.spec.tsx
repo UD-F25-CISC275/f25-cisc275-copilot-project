@@ -398,4 +398,249 @@ describe("AssignmentTaker", () => {
         expect(screen.getByText("MCQ?")).toBeInTheDocument();
         expect(screen.getByText("Fill?")).toBeInTheDocument();
     });
+
+    test("shows rubric feedback for essay items with rubric after submission", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay",
+                    gradingConfig: {
+                        rubric: {
+                            title: "Essay Rubric",
+                            description: "Quality of writing",
+                            criteria: [
+                                {
+                                    level: 1,
+                                    name: "Excellent",
+                                    description: "Outstanding work",
+                                    points: 10,
+                                },
+                                {
+                                    level: 2,
+                                    name: "Good",
+                                    description: "Solid work",
+                                    points: 7,
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Rubric feedback should not be visible before submission
+        expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        // Rubric feedback should now be visible
+        expect(screen.getByTestId("rubric-feedback-1")).toBeInTheDocument();
+        expect(screen.getByText("⏳ Awaiting grading")).toBeInTheDocument();
+        expect(screen.getByText("Essay Rubric")).toBeInTheDocument();
+        expect(screen.getByText("Quality of writing")).toBeInTheDocument();
+        expect(screen.getByText("Excellent")).toBeInTheDocument();
+        expect(screen.getByText(": Outstanding work")).toBeInTheDocument();
+        expect(screen.getByText("(10 points)")).toBeInTheDocument();
+        expect(screen.getByText("Good")).toBeInTheDocument();
+        expect(screen.getByText(": Solid work")).toBeInTheDocument();
+        expect(screen.getByText("(7 points)")).toBeInTheDocument();
+        expect(screen.getByText("Maximum Points: 17")).toBeInTheDocument();
+    });
+
+    test("does not show rubric feedback for essay items without rubric", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay",
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        // Rubric feedback should not be visible
+        expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
+    });
+
+    test("shows rubric feedback for code-cell items with rubric after submission", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "code-cell",
+                    prompt: "Write some code",
+                    files: [],
+                    gradingConfig: {
+                        rubric: {
+                            title: "Code Quality",
+                            description: "Assess code quality",
+                            criteria: [
+                                {
+                                    level: 1,
+                                    name: "Perfect",
+                                    description: "No issues",
+                                    points: 20,
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Rubric feedback should not be visible before submission
+        expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        // Rubric feedback should now be visible
+        expect(screen.getByTestId("rubric-feedback-1")).toBeInTheDocument();
+        expect(screen.getByText("⏳ Awaiting grading")).toBeInTheDocument();
+        expect(screen.getByText("Code Quality")).toBeInTheDocument();
+        expect(screen.getByText("Assess code quality")).toBeInTheDocument();
+        expect(screen.getByText("Perfect")).toBeInTheDocument();
+        expect(screen.getByText("(20 points)")).toBeInTheDocument();
+        expect(screen.getByText("Maximum Points: 20")).toBeInTheDocument();
+    });
+
+    test("shows rubric feedback for text items with rubric after submission", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "text",
+                    content: "Read this text",
+                    gradingConfig: {
+                        rubric: {
+                            title: "Participation",
+                            description: "",
+                            criteria: [
+                                {
+                                    level: 1,
+                                    name: "Attended",
+                                    description: "",
+                                    points: 5,
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Rubric feedback should not be visible before submission
+        expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        // Rubric feedback should now be visible
+        expect(screen.getByTestId("rubric-feedback-1")).toBeInTheDocument();
+        expect(screen.getByText("⏳ Awaiting grading")).toBeInTheDocument();
+        expect(screen.getByText("Participation")).toBeInTheDocument();
+        expect(screen.getByText("Attended")).toBeInTheDocument();
+        expect(screen.getByText("Maximum Points: 5")).toBeInTheDocument();
+    });
+
+    test("shows rubric with no title using default 'Rubric' label", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay",
+                    gradingConfig: {
+                        rubric: {
+                            title: "",
+                            description: "",
+                            criteria: [
+                                {
+                                    level: 1,
+                                    name: "",
+                                    description: "",
+                                    points: 10,
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        // Should show default "Rubric" label
+        expect(screen.getByText("Rubric")).toBeInTheDocument();
+        expect(screen.getByText("Level 1")).toBeInTheDocument();
+    });
+
+    test("shows rubric criteria without names using level numbers", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay",
+                    gradingConfig: {
+                        rubric: {
+                            title: "Test Rubric",
+                            description: "",
+                            criteria: [
+                                {
+                                    level: 1,
+                                    name: "",
+                                    description: "First level",
+                                    points: 5,
+                                },
+                                {
+                                    level: 2,
+                                    name: "",
+                                    description: "Second level",
+                                    points: 3,
+                                },
+                            ],
+                        },
+                    },
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        // Submit
+        fireEvent.click(screen.getByTestId("submit-button"));
+
+        expect(screen.getByText("Level 1")).toBeInTheDocument();
+        expect(screen.getByText("Level 2")).toBeInTheDocument();
+    });
 });

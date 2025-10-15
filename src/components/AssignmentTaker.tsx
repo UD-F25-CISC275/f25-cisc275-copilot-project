@@ -90,9 +90,42 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         const result = getSubmittedResult(item.id);
 
         if (item.type === "text") {
+            const rubric = item.gradingConfig?.rubric;
             return (
                 <div key={item.id} className="taker-item text-item">
                     <div className="text-content">{item.content}</div>
+                    {rubric && hasSubmitted && (
+                        <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
+                            <div className="feedback-status awaiting">
+                                ⏳ Awaiting grading
+                            </div>
+                            <div className="rubric-info">
+                                <strong>{rubric.title || "Rubric"}</strong>
+                                {rubric.description && (
+                                    <p className="rubric-description">{rubric.description}</p>
+                                )}
+                                {rubric.criteria.length > 0 && (
+                                    <div className="rubric-criteria-display">
+                                        <h4>Grading Criteria:</h4>
+                                        <ul>
+                                            {rubric.criteria.map((criteria, index) => (
+                                                <li key={index}>
+                                                    <span className="criteria-name">{criteria.name || `Level ${criteria.level}`}</span>
+                                                    {criteria.description && (
+                                                        <span className="criteria-desc">: {criteria.description}</span>
+                                                    )}
+                                                    <span className="criteria-points"> ({criteria.points} points)</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="max-points">
+                                            Maximum Points: {rubric.criteria.reduce((sum, c) => sum + c.points, 0)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
@@ -166,6 +199,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         }
 
         if (item.type === "essay") {
+            const rubric = item.gradingConfig?.rubric;
             return (
                 <div key={item.id} className="taker-item essay-item">
                     <div className="prompt">{item.prompt}</div>
@@ -175,15 +209,80 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         data-testid={`essay-textarea-${item.id}`}
                     />
                     <div className="essay-note">Essay items require manual grading</div>
+                    {rubric && hasSubmitted && (
+                        <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
+                            <div className="feedback-status awaiting">
+                                ⏳ Awaiting grading
+                            </div>
+                            <div className="rubric-info">
+                                <strong>{rubric.title || "Rubric"}</strong>
+                                {rubric.description && (
+                                    <p className="rubric-description">{rubric.description}</p>
+                                )}
+                                {rubric.criteria.length > 0 && (
+                                    <div className="rubric-criteria-display">
+                                        <h4>Grading Criteria:</h4>
+                                        <ul>
+                                            {rubric.criteria.map((criteria, index) => (
+                                                <li key={index}>
+                                                    <span className="criteria-name">{criteria.name || `Level ${criteria.level}`}</span>
+                                                    {criteria.description && (
+                                                        <span className="criteria-desc">: {criteria.description}</span>
+                                                    )}
+                                                    <span className="criteria-points"> ({criteria.points} points)</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="max-points">
+                                            Maximum Points: {rubric.criteria.reduce((sum, c) => sum + c.points, 0)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
 
         if (item.type === "code-cell") {
+            const rubric = item.gradingConfig?.rubric;
             return (
                 <div key={item.id} className="taker-item code-cell-item">
                     <div className="prompt">{item.prompt}</div>
                     <div className="code-note">Code execution not available in taker view</div>
+                    {rubric && hasSubmitted && (
+                        <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
+                            <div className="feedback-status awaiting">
+                                ⏳ Awaiting grading
+                            </div>
+                            <div className="rubric-info">
+                                <strong>{rubric.title || "Rubric"}</strong>
+                                {rubric.description && (
+                                    <p className="rubric-description">{rubric.description}</p>
+                                )}
+                                {rubric.criteria.length > 0 && (
+                                    <div className="rubric-criteria-display">
+                                        <h4>Grading Criteria:</h4>
+                                        <ul>
+                                            {rubric.criteria.map((criteria, index) => (
+                                                <li key={index}>
+                                                    <span className="criteria-name">{criteria.name || `Level ${criteria.level}`}</span>
+                                                    {criteria.description && (
+                                                        <span className="criteria-desc">: {criteria.description}</span>
+                                                    )}
+                                                    <span className="criteria-points"> ({criteria.points} points)</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="max-points">
+                                            Maximum Points: {rubric.criteria.reduce((sum, c) => sum + c.points, 0)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
