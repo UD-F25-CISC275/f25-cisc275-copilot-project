@@ -834,4 +834,492 @@ describe("AssignmentTaker", () => {
         // Should not show test.py in editor
         expect(screen.queryByText("test.py")).not.toBeInTheDocument();
     });
+
+    // Page Navigation and Gating Tests
+    describe("Page Navigation", () => {
+        test("shows page indicator for multi-page assignments", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            expect(screen.getByTestId("page-indicator")).toHaveTextContent("Page 1 of 2");
+        });
+
+        test("does not show page indicator for single-page assignments", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Single-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            expect(screen.queryByTestId("page-indicator")).not.toBeInTheDocument();
+        });
+
+        test("shows only current page items", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Should show page 1 content
+            expect(screen.getByText("Page 1 content")).toBeInTheDocument();
+            // Should not show page 2 content
+            expect(screen.queryByText("Page 2 content")).not.toBeInTheDocument();
+        });
+
+        test("navigates to next page", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Click next
+            fireEvent.click(screen.getByTestId("next-button"));
+
+            // Should show page 2 content
+            expect(screen.getByText("Page 2 content")).toBeInTheDocument();
+            // Should not show page 1 content
+            expect(screen.queryByText("Page 1 content")).not.toBeInTheDocument();
+            // Page indicator should update
+            expect(screen.getByTestId("page-indicator")).toHaveTextContent("Page 2 of 2");
+        });
+
+        test("navigates to previous page", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Go to page 2
+            fireEvent.click(screen.getByTestId("next-button"));
+
+            // Click previous
+            fireEvent.click(screen.getByTestId("previous-button"));
+
+            // Should show page 1 content
+            expect(screen.getByText("Page 1 content")).toBeInTheDocument();
+            // Should not show page 2 content
+            expect(screen.queryByText("Page 2 content")).not.toBeInTheDocument();
+            // Page indicator should update
+            expect(screen.getByTestId("page-indicator")).toHaveTextContent("Page 1 of 2");
+        });
+
+        test("does not show previous button on first page", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            expect(screen.queryByTestId("previous-button")).not.toBeInTheDocument();
+        });
+
+        test("does not show next button on last page", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Go to page 2
+            fireEvent.click(screen.getByTestId("next-button"));
+
+            expect(screen.queryByTestId("next-button")).not.toBeInTheDocument();
+        });
+
+        test("shows page break as hr element", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Multi-page Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "text",
+                        content: "Page 1 content",
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Page break should be visible on page 1
+            expect(document.querySelector(".page-break hr")).toBeInTheDocument();
+        });
+    });
+
+    describe("Page Gating", () => {
+        test("disables next button when requireAllCorrect is true and not submitted", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                        requireAllCorrect: true,
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).toBeDisabled();
+        });
+
+        test("disables next button when requireAllCorrect is true and answers are incorrect", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                        requireAllCorrect: true,
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Select wrong answer
+            fireEvent.click(screen.getByTestId("mcq-choice-1-0"));
+
+            // Submit
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).toBeDisabled();
+        });
+
+        test("enables next button when requireAllCorrect is true and all answers are correct", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                        requireAllCorrect: true,
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Select correct answer
+            fireEvent.click(screen.getByTestId("mcq-choice-1-1"));
+
+            // Submit
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).not.toBeDisabled();
+        });
+
+        test("enables next button when requireAllCorrect is false", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Non-gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                        requireAllCorrect: false,
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).not.toBeDisabled();
+        });
+
+        test("enables next button when no requireAllCorrect flag is set", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Non-gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).not.toBeDisabled();
+        });
+
+        test("gating works with fill-in-blank items", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "What is the capital of France?",
+                        acceptedAnswers: ["Paris"],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                        requireAllCorrect: true,
+                    },
+                    {
+                        id: 3,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Enter correct answer
+            const input = screen.getByTestId("fill-blank-input-1");
+            fireEvent.change(input, { target: { value: "Paris" } });
+
+            // Submit
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).not.toBeDisabled();
+        });
+
+        test("gating requires all items to be correct", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Gated Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                    },
+                    {
+                        id: 2,
+                        type: "fill-in-blank",
+                        question: "What is the capital of France?",
+                        acceptedAnswers: ["Paris"],
+                    },
+                    {
+                        id: 3,
+                        type: "page-break",
+                        requireAllCorrect: true,
+                    },
+                    {
+                        id: 4,
+                        type: "text",
+                        content: "Page 2 content",
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Select correct MCQ answer
+            fireEvent.click(screen.getByTestId("mcq-choice-1-1"));
+
+            // Enter incorrect fill-in-blank answer
+            const input = screen.getByTestId("fill-blank-input-2");
+            fireEvent.change(input, { target: { value: "London" } });
+
+            // Submit
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            const nextButton = screen.getByTestId("next-button");
+            expect(nextButton).toBeDisabled();
+        });
+    });
 });
