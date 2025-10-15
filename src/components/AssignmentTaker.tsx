@@ -384,9 +384,10 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
             const rubric = item.gradingConfig?.rubric;
             const testFileName = item.gradingConfig?.testFileName;
             
-            // Initialize student files from item or answer
+            // Initialize student files from item or answer (always filter out instructor files)
             const answer = getAnswer(item.id);
-            const studentFiles = answer?.codeFiles || item.files.filter(f => !f.isInstructorFile);
+            const allFiles = answer?.codeFiles || item.files;
+            const studentFiles = allFiles.filter(f => !f.isInstructorFile);
             
             // Get execution states
             const codeExecState = getCodeExecutionState(item.id);
