@@ -1,0 +1,250 @@
+/* Grading Configuration Editor Styles */
+
+.grading-config-collapsed {
+    margin-top: 1rem;
+    padding: 0.5rem 0;
+}
+
+.toggle-grading-config {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    font-weight: 500;
+    transition: background-color 0.25s, color 0.25s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toggle-grading-config:hover {
+    background-color: #646cff;
+    color: white;
+}
+
+.grading-indicators {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+}
+
+.auto-grading-badge,
+.manual-grading-badge {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.auto-grading-badge {
+    background-color: #4caf50;
+    color: white;
+}
+
+.manual-grading-badge {
+    background-color: #ff9800;
+    color: white;
+}
+
+.grading-config-editor {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    border: 1px solid #646cff;
+}
+
+.grading-config-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #444;
+}
+
+.grading-config-header h4 {
+    margin: 0;
+    color: #646cff;
+}
+
+.collapse-grading-config {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.collapse-grading-config:hover {
+    background-color: #646cff;
+    color: white;
+}
+
+.grading-option {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #2a2a2a;
+    border-radius: 4px;
+}
+
+.grading-option label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.grading-option-description {
+    margin: 0.25rem 0 0.75rem 0;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.grading-option input[type="text"],
+.grading-option textarea,
+.grading-option select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #1a1a1a;
+    color: white;
+    font-family: inherit;
+}
+
+.grading-option input[type="number"] {
+    width: 100px;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    border: 1px solid #444;
+    background-color: #1a1a1a;
+    color: white;
+}
+
+.grading-option textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.test-file-selector {
+    margin-top: 0.5rem;
+}
+
+/* Rubric Section */
+
+.rubric-section {
+    border: 1px solid #444;
+}
+
+.rubric-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.rubric-meta {
+    margin-bottom: 1rem;
+}
+
+.rubric-meta label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.rubric-meta input,
+.rubric-meta textarea {
+    margin-top: 0.25rem;
+}
+
+.rubric-criteria {
+    margin-top: 1rem;
+}
+
+.rubric-criteria h5 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.9rem;
+    color: #aaa;
+}
+
+.criteria-item {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+    border: 1px solid #444;
+}
+
+.criteria-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.criteria-level {
+    font-weight: 600;
+    color: #646cff;
+}
+
+.remove-criteria {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid #ff4444;
+    background-color: transparent;
+    color: #ff4444;
+    transition: background-color 0.25s, color 0.25s;
+}
+
+.remove-criteria:hover {
+    background-color: #ff4444;
+    color: white;
+}
+
+.criteria-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.criteria-fields label {
+    display: block;
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.add-criteria-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #646cff;
+    background-color: transparent;
+    color: #646cff;
+    font-weight: 500;
+    transition: background-color 0.25s, color 0.25s;
+    width: 100%;
+}
+
+.add-criteria-button:hover {
+    background-color: #646cff;
+    color: white;
+}
+
+.ai-prompt-textarea {
+    font-family: monospace;
+    font-size: 0.9rem;
+}

@@ -1588,5 +1588,149 @@ describe("AssignmentEditor", () => {
             expect(options).toContain("c");
         });
     });
+
+    describe("Grading Configuration", () => {
+        test("displays grading configuration button for items", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add text item
+            fireEvent.click(screen.getByTestId("add-text"));
+
+            // Should have grading config button
+            expect(screen.getByText(/Configure Grading/i)).toBeInTheDocument();
+        });
+
+        test("can configure grading for multiple-choice item", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add multiple-choice item
+            fireEvent.click(screen.getByTestId("add-multiple-choice"));
+
+            // Open grading config
+            fireEvent.click(screen.getByText(/Configure Grading/i));
+
+            // Should show answer checking option
+            expect(
+                screen.getByText("Enable Answer Checking")
+            ).toBeInTheDocument();
+        });
+
+        test("can configure grading for essay item", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add essay item
+            fireEvent.click(screen.getByTestId("add-essay"));
+
+            // Open grading config
+            fireEvent.click(screen.getByText(/Configure Grading/i));
+
+            // Should show rubric option
+            expect(screen.getByText("Rubric")).toBeInTheDocument();
+            // Should show AI prompt option
+            expect(screen.getByText("AI Grading Prompt")).toBeInTheDocument();
+        });
+
+        test("can configure grading for code-cell item", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add code-cell item
+            fireEvent.click(screen.getByTestId("add-code-cell"));
+
+            // Open grading config
+            fireEvent.click(screen.getByText(/Configure Grading/i));
+
+            // Should show unit test option
+            expect(screen.getByText("Unit Test File")).toBeInTheDocument();
+            // Should show rubric option
+            expect(screen.getByText("Rubric")).toBeInTheDocument();
+            // Should show AI prompt option
+            expect(screen.getByText("AI Grading Prompt")).toBeInTheDocument();
+        });
+
+        test("saves grading configuration with item", () => {
+            const mockSave = jest.fn();
+            const mockBack = jest.fn();
+
+            render(
+                <AssignmentEditor
+                    assignment={mockAssignment}
+                    onSave={mockSave}
+                    onBack={mockBack}
+                />
+            );
+
+            // Add essay item
+            fireEvent.click(screen.getByTestId("add-essay"));
+
+            // Fill in prompt
+            fireEvent.change(screen.getByTestId("essay-prompt-1"), {
+                target: { value: "Test prompt" },
+            });
+
+            // Open grading config
+            fireEvent.click(screen.getByText(/Configure Grading/i));
+
+            // Add AI prompt
+            const aiPromptTextarea = screen.getByPlaceholderText(
+                "Enter AI grading instructions..."
+            );
+            fireEvent.change(aiPromptTextarea, {
+                target: { value: "Grade based on clarity" },
+            });
+
+            // Save
+            fireEvent.click(screen.getByTestId("save-button"));
+
+            expect(mockSave).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    items: expect.arrayContaining([
+                        expect.objectContaining({
+                            type: "essay",
+                            prompt: "Test prompt",
+                            gradingConfig: expect.objectContaining({
+                                aiPrompt: "Grade based on clarity",
+                            }),
+                        }),
+                    ]),
+                })
+            );
+        });
+    });
 });
 

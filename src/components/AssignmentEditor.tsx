@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, ItemType, CodeFile } from "../types/AssignmentItem";
 import { MarkdownEditor } from "./MarkdownEditor";
+import { GradingConfigEditor } from "./GradingConfigEditor";
 import { usePyodide } from "../hooks/usePyodide";
 import "../styles/AssignmentEditor.css";
 
@@ -333,6 +334,13 @@ function CodeCellEditor({ item, onUpdate }: CodeCellEditorProps) {
                         )}
                     </div>
                 )}
+
+                <GradingConfigEditor
+                    itemType={item.type}
+                    config={item.gradingConfig}
+                    onChange={(config) => onUpdate({ gradingConfig: config })}
+                    files={files}
+                />
             </div>
         </div>
     );
@@ -351,6 +359,11 @@ function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewC
                         onChange={(value) => onUpdate({ content: value })}
                         placeholder="Enter text content using markdown..."
                         testId={`text-content-${item.id}`}
+                    />
+                    <GradingConfigEditor
+                        itemType={item.type}
+                        config={item.gradingConfig}
+                        onChange={(config) => onUpdate({ gradingConfig: config })}
                     />
                 </div>
             );
@@ -481,6 +494,11 @@ function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewC
                     >
                         + Add Choice
                     </button>
+                    <GradingConfigEditor
+                        itemType={item.type}
+                        config={item.gradingConfig}
+                        onChange={(config) => onUpdate({ gradingConfig: config })}
+                    />
                 </div>
             );
         case "fill-in-blank":
@@ -601,6 +619,11 @@ function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewC
                             Trim whitespace
                         </label>
                     </div>
+                    <GradingConfigEditor
+                        itemType={item.type}
+                        config={item.gradingConfig}
+                        onChange={(config) => onUpdate({ gradingConfig: config })}
+                    />
                 </div>
             );
         case "essay": {
@@ -642,6 +665,11 @@ function ItemEditor({ item, onUpdate, essayPreviewResponse = "", onEssayPreviewC
                             </span>
                         </div>
                     </div>
+                    <GradingConfigEditor
+                        itemType={item.type}
+                        config={item.gradingConfig}
+                        onChange={(config) => onUpdate({ gradingConfig: config })}
+                    />
                 </div>
             );
         }
