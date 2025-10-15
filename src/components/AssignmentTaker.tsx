@@ -91,11 +91,10 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
 
         if (item.type === "text") {
             const rubric = item.gradingConfig?.rubric;
-            const hasRubric = !!rubric;
             return (
                 <div key={item.id} className="taker-item text-item">
                     <div className="text-content">{item.content}</div>
-                    {hasRubric && rubric && hasSubmitted && (
+                    {rubric && hasSubmitted && (
                         <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
                             <div className="feedback-status awaiting">
                                 ⏳ Awaiting grading
@@ -201,7 +200,6 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
 
         if (item.type === "essay") {
             const rubric = item.gradingConfig?.rubric;
-            const hasRubric = !!rubric;
             return (
                 <div key={item.id} className="taker-item essay-item">
                     <div className="prompt">{item.prompt}</div>
@@ -211,7 +209,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         data-testid={`essay-textarea-${item.id}`}
                     />
                     <div className="essay-note">Essay items require manual grading</div>
-                    {hasRubric && rubric && hasSubmitted && (
+                    {rubric && hasSubmitted && (
                         <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
                             <div className="feedback-status awaiting">
                                 ⏳ Awaiting grading
@@ -249,12 +247,11 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
 
         if (item.type === "code-cell") {
             const rubric = item.gradingConfig?.rubric;
-            const hasRubric = !!rubric;
             return (
                 <div key={item.id} className="taker-item code-cell-item">
                     <div className="prompt">{item.prompt}</div>
                     <div className="code-note">Code execution not available in taker view</div>
-                    {hasRubric && rubric && hasSubmitted && (
+                    {rubric && hasSubmitted && (
                         <div className="rubric-feedback" data-testid={`rubric-feedback-${item.id}`}>
                             <div className="feedback-status awaiting">
                                 ⏳ Awaiting grading
