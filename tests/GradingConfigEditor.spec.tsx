@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { GradingConfigEditor } from "../src/components/GradingConfigEditor";
 import type { GradingConfig } from "../src/types/GradingConfig";
-import type { CodeFile } from "../src/types/AssignmentItem";
+import type { CodeFile, ItemType } from "../src/types/AssignmentItem";
 
 describe("GradingConfigEditor", () => {
     test("renders collapsed by default", () => {
@@ -235,7 +235,7 @@ describe("GradingConfigEditor", () => {
     });
 
     test("shows AI prompt section for all items", () => {
-        const itemTypes: Array<"text" | "essay" | "multiple-choice" | "fill-in-blank" | "code-cell"> = [
+        const itemTypes: ItemType[] = [
             "text",
             "essay",
             "multiple-choice",
