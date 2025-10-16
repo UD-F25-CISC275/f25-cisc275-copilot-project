@@ -229,7 +229,7 @@ describe("AssignmentTaker", () => {
         expect(screen.getByText("✗ Incorrect")).toBeInTheDocument();
     });
 
-    test("disables submit button after submission", () => {
+    test("allows resubmission after initial submission", () => {
         const assignment: Assignment = {
             id: 1,
             title: "Test Assignment",
@@ -252,8 +252,8 @@ describe("AssignmentTaker", () => {
 
         fireEvent.click(submitButton);
 
-        expect(submitButton).toBeDisabled();
-        expect(submitButton).toHaveTextContent("Submitted");
+        expect(submitButton).not.toBeDisabled();
+        expect(submitButton).toHaveTextContent("Submit Again");
     });
 
     test("disables inputs after submission", () => {
@@ -1320,6 +1320,229 @@ describe("AssignmentTaker", () => {
 
             const nextButton = screen.getByTestId("next-button");
             expect(nextButton).toBeDisabled();
+        });
+    });
+
+    describe("Attempt Counter", () => {
+        test("does not show attempt counter before first submission", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "Test question",
+                        acceptedAnswers: ["test"],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            expect(screen.queryByTestId("attempt-counter")).not.toBeInTheDocument();
+        });
+
+        test("shows attempt counter after first submission", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "Test question",
+                        acceptedAnswers: ["test"],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            const attemptCounter = screen.getByTestId("attempt-counter");
+            expect(attemptCounter).toBeInTheDocument();
+            expect(attemptCounter).toHaveTextContent("Attempt 1");
+        });
+
+        test("increments attempt counter on multiple submissions", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "Test question",
+                        acceptedAnswers: ["test"],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // First submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+            
+            // Second submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 2");
+            
+            // Third submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 3");
+        });
+
+        test("maintains separate attempt counts for different pages", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "Page 1 question",
+                        acceptedAnswers: ["test"],
+                    },
+                    {
+                        id: 2,
+                        type: "page-break",
+                    },
+                    {
+                        id: 3,
+                        type: "fill-in-blank",
+                        question: "Page 2 question",
+                        acceptedAnswers: ["test2"],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // Submit on page 1
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+
+            // Navigate to page 2
+            fireEvent.click(screen.getByTestId("next-button"));
+            expect(screen.queryByTestId("attempt-counter")).not.toBeInTheDocument();
+
+            // Submit on page 2
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+
+            // Go back to page 1
+            fireEvent.click(screen.getByTestId("previous-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+        });
+
+        test("shows correct feedback for most recent submission attempt", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "What is 2+2?",
+                        acceptedAnswers: ["4"],
+                        caseSensitive: false,
+                        trimWhitespace: true,
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const input = screen.getByTestId("fill-blank-input-1");
+
+            // First submission - incorrect answer
+            fireEvent.change(input, { target: { value: "5" } });
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Verify incorrect feedback is shown
+            expect(screen.getByText("✗ Incorrect")).toBeInTheDocument();
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+        });
+
+        test("displays past attempts history after multiple submissions", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "What is 2+2?",
+                        acceptedAnswers: ["4"],
+                        caseSensitive: false,
+                        trimWhitespace: true,
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const input = screen.getByTestId("fill-blank-input-1");
+
+            // First submission - incorrect
+            fireEvent.change(input, { target: { value: "3" } });
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // No past attempts yet (only 1 attempt)
+            expect(screen.queryByTestId("attempt-history")).not.toBeInTheDocument();
+
+            // Second submission - correct
+            fireEvent.change(input, { target: { value: "4" } });
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Past attempts section should now appear
+            expect(screen.getByTestId("attempt-history")).toBeInTheDocument();
+            expect(screen.getByText("Past Attempts")).toBeInTheDocument();
+            expect(screen.getByTestId("past-attempt-1")).toBeInTheDocument();
+            
+            // Third submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            
+            // Should show 2 past attempts
+            expect(screen.getByTestId("past-attempt-1")).toBeInTheDocument();
+            expect(screen.getByTestId("past-attempt-2")).toBeInTheDocument();
+        });
+
+        test("shows results in past attempts history", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                        choiceFeedback: [],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // First submission - wrong answer
+            const wrongChoice = screen.getByTestId("mcq-choice-1-0");
+            fireEvent.click(wrongChoice);
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Second submission - correct answer
+            const correctChoice = screen.getByTestId("mcq-choice-1-1");
+            fireEvent.click(correctChoice);
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Check past attempts section shows the first attempt result
+            const pastAttempt = screen.getByTestId("past-attempt-1");
+            expect(pastAttempt).toBeInTheDocument();
+            expect(pastAttempt).toHaveTextContent("✗ Incorrect");
         });
     });
 });

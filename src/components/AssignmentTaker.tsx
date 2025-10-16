@@ -30,6 +30,12 @@ interface SubmittedResult {
     fillInBlankResult?: FillInBlankGradingResult;
 }
 
+interface AttemptHistory {
+    attemptNumber: number;
+    timestamp: Date;
+    results: SubmittedResult[];
+}
+
 interface CodeExecutionState {
     itemId: number;
     isExecuting: boolean;
@@ -54,6 +60,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [codeExecutionStates, setCodeExecutionStates] = useState<CodeExecutionState[]>([]);
     const [testExecutionStates, setTestExecutionStates] = useState<TestExecutionState[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
+    const [attemptHistory, setAttemptHistory] = useState<Partial<Record<number, AttemptHistory[]>>>({});
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     // Split items into pages based on page-break items
@@ -295,6 +302,21 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
             return [...newResults, ...results];
         });
         setHasSubmitted(true);
+        
+        // Add to attempt history for current page
+        setAttemptHistory((prev) => {
+            const pageHistory = prev[currentPage] ?? [];
+            const attemptNumber = pageHistory.length + 1;
+            const newAttempt: AttemptHistory = {
+                attemptNumber,
+                timestamp: new Date(),
+                results
+            };
+            return {
+                ...prev,
+                [currentPage]: [...pageHistory, newAttempt]
+            };
+        });
     };
 
     const renderItem = (item: AssignmentItem) => {
@@ -619,6 +641,14 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         Page {currentPage + 1} of {finalPages.length}
                     </div>
                 )}
+                {(() => {
+                    const pageAttempts = attemptHistory[currentPage];
+                    return pageAttempts && pageAttempts.length > 0 && (
+                        <div className="attempt-counter" data-testid="attempt-counter">
+                            Attempt {pageAttempts.length}
+                        </div>
+                    );
+                })()}
             </div>
 
             <div className="taker-items">
@@ -629,6 +659,55 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                     </div>
                 )}
             </div>
+
+            {(() => {
+                const pageAttempts = attemptHistory[currentPage];
+                return pageAttempts && pageAttempts.length > 1 && (
+                    <div className="attempt-history-section" data-testid="attempt-history">
+                        <h3>Past Attempts</h3>
+                        <div className="attempt-history-list">
+                            {pageAttempts.slice(0, -1).reverse().map((attempt) => (
+                            <div key={attempt.attemptNumber} className="past-attempt" data-testid={`past-attempt-${attempt.attemptNumber}`}>
+                                <div className="attempt-header">
+                                    <strong>Attempt {attempt.attemptNumber}</strong>
+                                    <span className="attempt-time">{attempt.timestamp.toLocaleTimeString()}</span>
+                                </div>
+                                <div className="attempt-results">
+                                    {attempt.results.map((result) => {
+                                        const item = finalPages[currentPage]?.items.find(i => i.id === result.itemId);
+                                        if (!item) return null;
+                                        
+                                        if (result.mcqResult) {
+                                            return (
+                                                <div key={result.itemId} className="result-item">
+                                                    <span className="item-label">MCQ:</span>
+                                                    <span className={`result-badge ${result.mcqResult.passed ? "passed" : "failed"}`}>
+                                                        {result.mcqResult.passed ? "✓ Correct" : "✗ Incorrect"}
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
+                                        
+                                        if (result.fillInBlankResult) {
+                                            return (
+                                                <div key={result.itemId} className="result-item">
+                                                    <span className="item-label">Fill-in-blank:</span>
+                                                    <span className={`result-badge ${result.fillInBlankResult.passed ? "passed" : "failed"}`}>
+                                                        {result.fillInBlankResult.passed ? "✓ Correct" : "✗ Incorrect"}
+                                                    </span>
+                                                </div>
+                                            );
+                                        }
+                                        
+                                        return null;
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                );
+            })()}
 
             <div className="taker-footer">
                 <div className="navigation-buttons">
@@ -647,11 +726,10 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                     
                     <button
                         onClick={handleSubmit}
-                        disabled={hasSubmitted}
                         className="submit-button"
                         data-testid="submit-button"
                     >
-                        {hasSubmitted ? "Submitted" : (finalPages.length > 1 ? "Submit Page" : "Submit Assignment")}
+                        {hasSubmitted ? "Submit Again" : (finalPages.length > 1 ? "Submit Page" : "Submit Assignment")}
                     </button>
                     
                     {currentPage < finalPages.length - 1 && (
