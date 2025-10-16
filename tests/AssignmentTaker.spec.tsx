@@ -413,6 +413,11 @@ describe("AssignmentTaker", () => {
                     question: "Fill?",
                     acceptedAnswers: ["test"],
                 },
+                {
+                    id: 3,
+                    type: "essay",
+                    prompt: "Essay?",
+                },
             ],
         };
 
@@ -421,14 +426,17 @@ describe("AssignmentTaker", () => {
 
         const mcqChoice = screen.getByTestId("mcq-choice-1-0");
         const fillInput = screen.getByTestId("fill-blank-input-2");
+        const essayTextarea = screen.getByTestId("essay-textarea-3");
 
         expect(mcqChoice).not.toBeDisabled();
         expect(fillInput).not.toBeDisabled();
+        expect(essayTextarea).not.toBeDisabled();
 
         fireEvent.click(screen.getByTestId("submit-button"));
 
         expect(mcqChoice).toBeDisabled();
         expect(fillInput).toBeDisabled();
+        expect(essayTextarea).toBeDisabled();
     });
 
     test("renders text items", () => {
@@ -468,6 +476,30 @@ describe("AssignmentTaker", () => {
 
         expect(screen.getByText("Write an essay about testing")).toBeInTheDocument();
         expect(screen.getByText("Essay items require manual grading")).toBeInTheDocument();
+    });
+
+    test("can input and capture essay answers", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay about testing",
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
+
+        const textarea = screen.getByTestId("essay-textarea-1") as HTMLTextAreaElement;
+        const essayText = "This is my essay about testing. Testing is important for software quality.";
+        
+        fireEvent.change(textarea, { target: { value: essayText } });
+
+        expect(textarea.value).toBe(essayText);
     });
 
     test("renders code cell items with code editor", () => {
