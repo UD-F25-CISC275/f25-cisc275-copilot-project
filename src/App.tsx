@@ -84,24 +84,22 @@ export function App() {
                 const importedAssignment =
                     await importAssignmentFromFile(file);
 
-                // Use functional updates to get the latest state
+                // Use functional updates to get the latest state values
                 setNextId((prevNextId) => {
-                    const newId = prevNextId;
-                    
-                    // Assign a new unique ID to avoid conflicts
+                    // Create new assignment with unique ID
                     const newAssignment: Assignment = {
                         ...importedAssignment,
-                        id: newId,
+                        id: prevNextId,
                     };
 
-                    // Add to assignments list
+                    // Add to assignments list using the captured newAssignment
                     setAssignments((prevAssignments) => [
                         ...prevAssignments,
                         newAssignment,
                     ]);
 
-                    // Navigate to editor to edit the imported assignment
-                    setEditingAssignmentId(newId);
+                    // Navigate to editor with the new assignment
+                    setEditingAssignmentId(prevNextId);
                     setCurrentView("editor");
 
                     return prevNextId + 1;
