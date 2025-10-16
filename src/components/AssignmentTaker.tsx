@@ -21,6 +21,7 @@ interface StudentAnswer {
     itemId: number;
     mcqAnswer?: number[];
     fillInBlankAnswer?: string;
+    essayAnswer?: string;
     codeFiles?: CodeFile[];
 }
 
@@ -257,6 +258,13 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         setAnswers((prev) => [
             ...prev.filter((a) => a.itemId !== itemId),
             { itemId, fillInBlankAnswer: answer },
+        ]);
+    };
+
+    const updateEssayAnswer = (itemId: number, answer: string) => {
+        setAnswers((prev) => [
+            ...prev.filter((a) => a.itemId !== itemId),
+            { itemId, essayAnswer: answer },
         ]);
     };
 
@@ -581,6 +589,8 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 <div key={item.id} className="taker-item essay-item">
                     <div className="prompt">{item.prompt}</div>
                     <textarea
+                        value={answer?.essayAnswer || ""}
+                        onChange={(e) => updateEssayAnswer(item.id, e.target.value)}
                         placeholder="Write your response..."
                         className="essay-textarea"
                         data-testid={`essay-textarea-${item.id}`}

@@ -470,6 +470,30 @@ describe("AssignmentTaker", () => {
         expect(screen.getByText("Essay items require manual grading")).toBeInTheDocument();
     });
 
+    test("can input and capture essay answers", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [
+                {
+                    id: 1,
+                    type: "essay",
+                    prompt: "Write an essay about testing",
+                },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
+
+        const textarea = screen.getByTestId("essay-textarea-1") as HTMLTextAreaElement;
+        const essayText = "This is my essay about testing. Testing is important for software quality.";
+        
+        fireEvent.change(textarea, { target: { value: essayText } });
+
+        expect(textarea.value).toBe(essayText);
+    });
+
     test("renders code cell items with code editor", () => {
         const assignment: Assignment = {
             id: 1,
