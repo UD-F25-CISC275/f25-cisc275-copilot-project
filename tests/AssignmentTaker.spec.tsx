@@ -7,7 +7,17 @@ describe("AssignmentTaker", () => {
 
     beforeEach(() => {
         mockBack.mockClear();
+        // Clear localStorage before each test
+        localStorage.clear();
     });
+
+    // Helper function to start an assignment (click past intro screen)
+    const startAssignment = () => {
+        const startButton = screen.queryByTestId("start-button");
+        if (startButton) {
+            fireEvent.click(startButton);
+        }
+    };
 
     test("renders assignment title and description", () => {
         const assignment: Assignment = {
@@ -18,6 +28,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("Test Assignment")).toBeInTheDocument();
         expect(screen.getByText("This is a test")).toBeInTheDocument();
@@ -31,9 +42,129 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         fireEvent.click(screen.getByText("← Back to Dashboard"));
         expect(mockBack).toHaveBeenCalledTimes(1);
+    });
+
+    // Intro Screen Tests
+    test("shows intro screen on first load", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            description: "Test description",
+            estimatedTime: 30,
+            items: [
+                { id: 1, type: "text", content: "Test content" },
+                { id: 2, type: "multiple-choice", question: "Q1", choices: ["A"], correctAnswers: [0] },
+            ],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByTestId("assignment-intro")).toBeInTheDocument();
+        expect(screen.getByText("Assignment Overview")).toBeInTheDocument();
+        expect(screen.getByText("Test description")).toBeInTheDocument();
+        expect(screen.getByTestId("estimated-time")).toHaveTextContent("30 minutes");
+        expect(screen.getByTestId("total-items")).toHaveTextContent("2");
+        expect(screen.getByTestId("total-pages")).toHaveTextContent("1");
+    });
+
+    test("shows start button when no saved progress", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByTestId("start-button")).toBeInTheDocument();
+        expect(screen.queryByTestId("resume-button")).not.toBeInTheDocument();
+        expect(screen.queryByTestId("restart-button")).not.toBeInTheDocument();
+    });
+
+    test("start button hides intro screen", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [{ id: 1, type: "text", content: "Test content" }],
+        };
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        fireEvent.click(screen.getByTestId("start-button"));
+
+        expect(screen.queryByTestId("assignment-intro")).not.toBeInTheDocument();
+        expect(screen.getByText("Test content")).toBeInTheDocument();
+    });
+
+    test("shows resume and restart buttons when saved progress exists", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [{ id: 1, type: "text", content: "Test" }],
+        };
+
+        // Simulate saved progress
+        localStorage.setItem("assignment-progress-1", JSON.stringify({
+            currentPage: 0,
+            answers: [],
+            submittedResults: [],
+            attemptHistory: {},
+        }));
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        expect(screen.getByTestId("resume-button")).toBeInTheDocument();
+        expect(screen.getByTestId("restart-button")).toBeInTheDocument();
+        expect(screen.queryByTestId("start-button")).not.toBeInTheDocument();
+    });
+
+    test("resume button hides intro screen and restores progress", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [{ id: 1, type: "text", content: "Test content" }],
+        };
+
+        localStorage.setItem("assignment-progress-1", JSON.stringify({
+            currentPage: 0,
+            answers: [],
+            submittedResults: [],
+            attemptHistory: {},
+        }));
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        fireEvent.click(screen.getByTestId("resume-button"));
+
+        expect(screen.queryByTestId("assignment-intro")).not.toBeInTheDocument();
+        expect(screen.getByText("Test content")).toBeInTheDocument();
+    });
+
+    test("restart button clears saved progress and starts fresh", () => {
+        const assignment: Assignment = {
+            id: 1,
+            title: "Test Assignment",
+            items: [{ id: 1, type: "text", content: "Test content" }],
+        };
+
+        localStorage.setItem("assignment-progress-1", JSON.stringify({
+            currentPage: 0,
+            answers: [],
+            submittedResults: [],
+            attemptHistory: {},
+        }));
+
+        render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+        fireEvent.click(screen.getByTestId("restart-button"));
+
+        expect(screen.queryByTestId("assignment-intro")).not.toBeInTheDocument();
+        expect(localStorage.getItem("assignment-progress-1")).toBeNull();
+        expect(screen.getByText("Test content")).toBeInTheDocument();
     });
 
     test("renders multiple choice questions", () => {
@@ -53,6 +184,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("What is 2+2?")).toBeInTheDocument();
         expect(screen.getByText("3")).toBeInTheDocument();
@@ -77,6 +209,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Select the correct answer
         const choice = screen.getByTestId("mcq-choice-1-1");
@@ -109,6 +242,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Select wrong answer
         const choice = screen.getByTestId("mcq-choice-1-0");
@@ -139,6 +273,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Select both correct answers
         fireEvent.click(screen.getByTestId("mcq-choice-1-1"));
@@ -168,6 +303,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("What is the capital of France?")).toBeInTheDocument();
         expect(screen.getByPlaceholderText("Enter your answer...")).toBeInTheDocument();
@@ -190,6 +326,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const input = screen.getByTestId("fill-blank-input-1");
         fireEvent.change(input, { target: { value: "Paris" } });
@@ -218,6 +355,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const input = screen.getByTestId("fill-blank-input-1");
         fireEvent.change(input, { target: { value: "London" } });
@@ -244,6 +382,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const submitButton = screen.getByTestId("submit-button");
         
@@ -278,6 +417,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const mcqChoice = screen.getByTestId("mcq-choice-1-0");
         const fillInput = screen.getByTestId("fill-blank-input-2");
@@ -305,6 +445,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("This is some text content")).toBeInTheDocument();
     });
@@ -323,6 +464,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("Write an essay about testing")).toBeInTheDocument();
         expect(screen.getByText("Essay items require manual grading")).toBeInTheDocument();
@@ -350,6 +492,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("Write some code")).toBeInTheDocument();
         expect(screen.getByText("main.py")).toBeInTheDocument();
@@ -368,6 +511,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const pageBreak = document.querySelector(".page-break");
         expect(pageBreak).toBeInTheDocument();
@@ -400,6 +544,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("Introduction")).toBeInTheDocument();
         expect(screen.getByText("MCQ?")).toBeInTheDocument();
@@ -440,6 +585,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Rubric feedback should not be visible before submission
         expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
@@ -475,6 +621,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Submit
         fireEvent.click(screen.getByTestId("submit-button"));
@@ -512,6 +659,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Rubric feedback should not be visible before submission
         expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
@@ -557,6 +705,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Rubric feedback should not be visible before submission
         expect(screen.queryByTestId("rubric-feedback-1")).not.toBeInTheDocument();
@@ -600,6 +749,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Submit
         fireEvent.click(screen.getByTestId("submit-button"));
@@ -643,6 +793,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Submit
         fireEvent.click(screen.getByTestId("submit-button"));
@@ -673,6 +824,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByText("Write a hello world function")).toBeInTheDocument();
         expect(screen.getByTestId("code-file-1-0")).toBeInTheDocument();
@@ -701,6 +853,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         const textarea = screen.getByTestId("code-file-1-0") as HTMLTextAreaElement;
         fireEvent.change(textarea, { target: { value: "print('hello')" } });
@@ -730,6 +883,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByTestId("run-code-1")).toBeInTheDocument();
     });
@@ -765,6 +919,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.getByTestId("run-tests-1")).toBeInTheDocument();
     });
@@ -791,6 +946,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         expect(screen.queryByTestId("run-tests-1")).not.toBeInTheDocument();
     });
@@ -826,6 +982,7 @@ describe("AssignmentTaker", () => {
         };
 
         render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+        startAssignment();
 
         // Should show main.py
         expect(screen.getByText("main.py")).toBeInTheDocument();
@@ -860,6 +1017,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             expect(screen.getByTestId("page-indicator")).toHaveTextContent("Page 1 of 2");
         });
@@ -878,6 +1036,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             expect(screen.queryByTestId("page-indicator")).not.toBeInTheDocument();
         });
@@ -905,6 +1064,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Should show page 1 content
             expect(screen.getByText("Page 1 content")).toBeInTheDocument();
@@ -935,6 +1095,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Click next
             fireEvent.click(screen.getByTestId("next-button"));
@@ -970,6 +1131,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Go to page 2
             fireEvent.click(screen.getByTestId("next-button"));
@@ -1008,6 +1170,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             expect(screen.queryByTestId("previous-button")).not.toBeInTheDocument();
         });
@@ -1035,6 +1198,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Go to page 2
             fireEvent.click(screen.getByTestId("next-button"));
@@ -1065,6 +1229,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Page break should be visible on page 1
             expect(document.querySelector(".page-break hr")).toBeInTheDocument();
@@ -1098,6 +1263,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             const nextButton = screen.getByTestId("next-button");
             expect(nextButton).toBeDisabled();
@@ -1129,6 +1295,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Select wrong answer
             fireEvent.click(screen.getByTestId("mcq-choice-1-0"));
@@ -1166,6 +1333,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Select correct answer
             fireEvent.click(screen.getByTestId("mcq-choice-1-1"));
@@ -1203,6 +1371,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             const nextButton = screen.getByTestId("next-button");
             expect(nextButton).not.toBeDisabled();
@@ -1233,6 +1402,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             const nextButton = screen.getByTestId("next-button");
             expect(nextButton).not.toBeDisabled();
@@ -1263,6 +1433,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Enter correct answer
             const input = screen.getByTestId("fill-blank-input-1");
@@ -1307,6 +1478,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Select correct MCQ answer
             fireEvent.click(screen.getByTestId("mcq-choice-1-1"));
@@ -1339,6 +1511,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             expect(screen.queryByTestId("attempt-counter")).not.toBeInTheDocument();
         });
@@ -1358,6 +1531,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             fireEvent.click(screen.getByTestId("submit-button"));
 
@@ -1381,6 +1555,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // First submission
             fireEvent.click(screen.getByTestId("submit-button"));
@@ -1420,6 +1595,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // Submit on page 1
             fireEvent.click(screen.getByTestId("submit-button"));
@@ -1455,6 +1631,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             const input = screen.getByTestId("fill-blank-input-1");
 
@@ -1484,6 +1661,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             const input = screen.getByTestId("fill-blank-input-1");
 
@@ -1528,6 +1706,7 @@ describe("AssignmentTaker", () => {
             };
 
             render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
 
             // First submission - wrong answer
             const wrongChoice = screen.getByTestId("mcq-choice-1-0");

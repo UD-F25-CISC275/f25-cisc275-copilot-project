@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, CodeFile, PageBreakItem } from "../types/AssignmentItem";
 import { gradeMCQ, gradeFillInBlank, type MCQGradingResult, type FillInBlankGradingResult } from "../utils/grading";
@@ -53,7 +53,15 @@ interface Page {
     pageBreak?: PageBreakItem;
 }
 
+interface SavedProgress {
+    currentPage: number;
+    answers: StudentAnswer[];
+    submittedResults: SubmittedResult[];
+    attemptHistory: Partial<Record<number, AttemptHistory[]>>;
+}
+
 export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
+    const [showIntro, setShowIntro] = useState(true);
     const [answers, setAnswers] = useState<StudentAnswer[]>([]);
     const [submittedResults, setSubmittedResults] = useState<SubmittedResult[]>([]);
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -61,7 +69,41 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [testExecutionStates, setTestExecutionStates] = useState<TestExecutionState[]>([]);
     const [currentPage, setCurrentPage] = useState(0);
     const [attemptHistory, setAttemptHistory] = useState<Partial<Record<number, AttemptHistory[]>>>({});
+    const [hasStarted, setHasStarted] = useState(false);
+    const [isRestarting, setIsRestarting] = useState(false);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
+
+    // Load saved progress from localStorage on mount
+    useEffect(() => {
+        const savedProgressKey = `assignment-progress-${assignment.id}`;
+        const savedData = localStorage.getItem(savedProgressKey);
+        
+        if (savedData) {
+            try {
+                const progress = JSON.parse(savedData) as SavedProgress;
+                setCurrentPage(progress.currentPage);
+                setAnswers(progress.answers);
+                setSubmittedResults(progress.submittedResults);
+                setAttemptHistory(progress.attemptHistory);
+            } catch (error) {
+                console.error("Failed to load saved progress:", error);
+            }
+        }
+    }, [assignment.id]);
+
+    // Save progress to localStorage whenever relevant state changes
+    useEffect(() => {
+        if (!showIntro && hasStarted && !isRestarting) {
+            const savedProgressKey = `assignment-progress-${assignment.id}`;
+            const progress: SavedProgress = {
+                currentPage,
+                answers,
+                submittedResults,
+                attemptHistory,
+            };
+            localStorage.setItem(savedProgressKey, JSON.stringify(progress));
+        }
+    }, [assignment.id, currentPage, answers, submittedResults, attemptHistory, showIntro, hasStarted, isRestarting]);
 
     // Split items into pages based on page-break items
     const pages: Page[] = [];
@@ -90,6 +132,107 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     }
     
     const finalPages = pages;
+
+    // Calculate total items (excluding page breaks)
+    const totalItems = assignment.items.filter(item => item.type !== "page-break").length;
+
+    // Check if there's saved progress
+    const hasSavedProgress = (): boolean => {
+        const savedProgressKey = `assignment-progress-${assignment.id}`;
+        return localStorage.getItem(savedProgressKey) !== null;
+    };
+
+    const handleStartOrResumeAssignment = () => {
+        setShowIntro(false);
+        setHasStarted(true);
+    };
+
+    const handleRestartAssignment = () => {
+        const savedProgressKey = `assignment-progress-${assignment.id}`;
+        setIsRestarting(true);
+        localStorage.removeItem(savedProgressKey);
+        setCurrentPage(0);
+        setAnswers([]);
+        setSubmittedResults([]);
+        setAttemptHistory({});
+        setShowIntro(false);
+        setHasStarted(true);
+        // Clear restart flag after state updates
+        setTimeout(() => setIsRestarting(false), 0);
+    };
+
+    // If showing intro screen, render that instead
+    if (showIntro) {
+        const hasProgress = hasSavedProgress();
+        
+        return (
+            <div className="assignment-taker">
+                <div className="taker-header">
+                    <button onClick={onBack} className="back-button">
+                        ← Back to Dashboard
+                    </button>
+                    <h1>{assignment.title}</h1>
+                </div>
+                
+                <div className="assignment-intro" data-testid="assignment-intro">
+                    <div className="intro-section">
+                        <h2>Assignment Overview</h2>
+                        
+                        {assignment.description && (
+                            <div className="intro-description">
+                                <strong>Description:</strong>
+                                <p>{assignment.description}</p>
+                            </div>
+                        )}
+                        
+                        {assignment.estimatedTime && (
+                            <div className="intro-estimated-time" data-testid="estimated-time">
+                                <strong>Estimated Time:</strong> {assignment.estimatedTime} minutes
+                            </div>
+                        )}
+                        
+                        <div className="intro-stats">
+                            <div className="stat-item" data-testid="total-items">
+                                <strong>Total Items:</strong> {totalItems}
+                            </div>
+                            <div className="stat-item" data-testid="total-pages">
+                                <strong>Total Pages:</strong> {finalPages.length}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="intro-actions">
+                        {hasProgress ? (
+                            <>
+                                <button
+                                    onClick={handleStartOrResumeAssignment}
+                                    className="resume-button"
+                                    data-testid="resume-button"
+                                >
+                                    Resume Assignment
+                                </button>
+                                <button
+                                    onClick={handleRestartAssignment}
+                                    className="restart-button"
+                                    data-testid="restart-button"
+                                >
+                                    Start Over
+                                </button>
+                            </>
+                        ) : (
+                            <button
+                                onClick={handleStartOrResumeAssignment}
+                                className="start-button"
+                                data-testid="start-button"
+                            >
+                                Start Assignment
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const updateMCQAnswer = (itemId: number, choiceIndex: number, checked: boolean) => {
         setAnswers((prev) => {
