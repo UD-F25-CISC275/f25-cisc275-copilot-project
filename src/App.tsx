@@ -4,6 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { AssignmentEditor } from "./components/AssignmentEditor";
 import { AssignmentTaker } from "./components/AssignmentTaker";
 import type { Assignment } from "./types/Assignment";
+import { importAssignmentFromFile } from "./utils/importAssignment";
 
 const sampleAssignments: Assignment[] = [
     {
@@ -77,6 +78,43 @@ export function App() {
         setTakingAssignmentId(null);
     };
 
+    const handleImportAssignment = (file: File) => {
+        void (async () => {
+            try {
+                const importedAssignment =
+                    await importAssignmentFromFile(file);
+
+                // Use functional updates to get the latest state values
+                setNextId((prevNextId) => {
+                    // Create new assignment with unique ID
+                    const newAssignment: Assignment = {
+                        ...importedAssignment,
+                        id: prevNextId,
+                    };
+
+                    // Add to assignments list using the captured newAssignment
+                    setAssignments((prevAssignments) => [
+                        ...prevAssignments,
+                        newAssignment,
+                    ]);
+
+                    // Navigate to editor with the new assignment
+                    setEditingAssignmentId(prevNextId);
+                    setCurrentView("editor");
+
+                    return prevNextId + 1;
+                });
+            } catch (error) {
+                // Show error message to user
+                const errorMessage =
+                    error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred";
+                alert(`Failed to import assignment: ${errorMessage}`);
+            }
+        })();
+    };
+
     const editingAssignment = assignments.find(
         (a) => a.id === editingAssignmentId
     );
@@ -93,6 +131,7 @@ export function App() {
                     onEdit={handleEdit}
                     onTake={handleTake}
                     onCreateAssignment={handleCreateAssignment}
+                    onImportAssignment={handleImportAssignment}
                 />
             )}
             {currentView === "editor" && editingAssignment && (
