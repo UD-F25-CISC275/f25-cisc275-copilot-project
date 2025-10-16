@@ -478,14 +478,31 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     };
 
     const handleExportSubmission = () => {
+        // Identify items that are pending manual grading
+        const pendingGradingItems = assignment.items
+            .filter(item => {
+                // Essays and code cells with rubrics require manual grading
+                if (item.type === "essay" || (item.type === "code-cell" && item.gradingConfig?.rubric)) {
+                    const answer = getAnswer(item.id);
+                    return answer && (answer.essayAnswer || answer.codeFiles);
+                }
+                return false;
+            })
+            .map(item => item.id);
+
         const submission = {
             assignmentId: assignment.id,
             assignmentTitle: assignment.title,
+            assignmentDescription: assignment.description,
+            assignmentEstimatedTime: assignment.estimatedTime,
             timestamp: new Date().toISOString(),
+            currentPage,
+            totalPages: finalPages.length,
             collaborators,
             answers,
             submittedResults,
             attemptHistory,
+            pendingGradingItems,
         };
 
         const dataStr = JSON.stringify(submission, null, 2);
