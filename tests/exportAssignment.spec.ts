@@ -224,9 +224,17 @@ describe("downloadAssignmentJSON", () => {
         };
         downloadAssignmentJSON(assignmentWithSpecialChars);
 
-        expect(mockLink.download).toBe(
-            "Test___Assignment__With___Special___Chars_.json"
-        );
+        expect(mockLink.download).toBe("Test_Assignment_With_Special_Chars.json");
+    });
+
+    test("trims leading and trailing underscores from sanitized filename", () => {
+        const assignmentWithEdgeChars: Assignment = {
+            ...mockAssignment,
+            title: "!!! Test Assignment !!!",
+        };
+        downloadAssignmentJSON(assignmentWithEdgeChars);
+
+        expect(mockLink.download).toBe("Test_Assignment.json");
     });
 
     test("creates blob with correct MIME type", () => {

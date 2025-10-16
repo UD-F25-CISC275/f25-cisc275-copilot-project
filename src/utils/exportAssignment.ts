@@ -30,7 +30,8 @@ export function downloadAssignmentJSON(
     const link = document.createElement("a");
     link.href = url;
     link.download =
-        filename || `${assignment.title.replace(/[^a-z0-9]/gi, "_")}.json`;
+        filename ||
+        `${assignment.title.replace(/[^a-z0-9]+/gi, "_").replace(/^_+|_+$/g, "")}.json`;
     document.body.appendChild(link);
     link.click();
 
