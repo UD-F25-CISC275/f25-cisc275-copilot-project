@@ -413,6 +413,11 @@ describe("AssignmentTaker", () => {
                     question: "Fill?",
                     acceptedAnswers: ["test"],
                 },
+                {
+                    id: 3,
+                    type: "essay",
+                    prompt: "Essay?",
+                },
             ],
         };
 
@@ -421,14 +426,17 @@ describe("AssignmentTaker", () => {
 
         const mcqChoice = screen.getByTestId("mcq-choice-1-0");
         const fillInput = screen.getByTestId("fill-blank-input-2");
+        const essayTextarea = screen.getByTestId("essay-textarea-3");
 
         expect(mcqChoice).not.toBeDisabled();
         expect(fillInput).not.toBeDisabled();
+        expect(essayTextarea).not.toBeDisabled();
 
         fireEvent.click(screen.getByTestId("submit-button"));
 
         expect(mcqChoice).toBeDisabled();
         expect(fillInput).toBeDisabled();
+        expect(essayTextarea).toBeDisabled();
     });
 
     test("renders text items", () => {

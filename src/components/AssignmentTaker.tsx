@@ -592,6 +592,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         value={answer?.essayAnswer || ""}
                         onChange={(e) => updateEssayAnswer(item.id, e.target.value)}
                         placeholder="Write your response..."
+                        disabled={hasSubmitted}
                         className="essay-textarea"
                         data-testid={`essay-textarea-${item.id}`}
                     />
