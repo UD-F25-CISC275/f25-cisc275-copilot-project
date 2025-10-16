@@ -31,11 +31,15 @@ interface StudentAnswer {
  */
 interface MCQGradingResult {
     passed: boolean;
-    feedbackPerChoice: Record<number, string>;
+    selectedAnswers: number[];
+    correctAnswers: number[];
+    feedbackPerChoice: string[];
 }
 
 interface FillInBlankGradingResult {
     passed: boolean;
+    studentAnswer: string;
+    acceptedAnswers: string[];
 }
 
 interface SubmittedResult {
@@ -121,13 +125,29 @@ function validateSubmittedResult(result: JsonValue): boolean {
     if (result.mcqResult !== undefined) {
         if (!isPlainObject(result.mcqResult)) return false;
         if (typeof result.mcqResult.passed !== "boolean") return false;
-        if (!isPlainObject(result.mcqResult.feedbackPerChoice)) return false;
+        if (!Array.isArray(result.mcqResult.selectedAnswers)) return false;
+        if (!result.mcqResult.selectedAnswers.every((a: JsonValue) => typeof a === "number")) {
+            return false;
+        }
+        if (!Array.isArray(result.mcqResult.correctAnswers)) return false;
+        if (!result.mcqResult.correctAnswers.every((a: JsonValue) => typeof a === "number")) {
+            return false;
+        }
+        if (!Array.isArray(result.mcqResult.feedbackPerChoice)) return false;
+        if (!result.mcqResult.feedbackPerChoice.every((f: JsonValue) => typeof f === "string")) {
+            return false;
+        }
     }
 
     // Check fillInBlankResult if present
     if (result.fillInBlankResult !== undefined) {
         if (!isPlainObject(result.fillInBlankResult)) return false;
         if (typeof result.fillInBlankResult.passed !== "boolean") return false;
+        if (typeof result.fillInBlankResult.studentAnswer !== "string") return false;
+        if (!Array.isArray(result.fillInBlankResult.acceptedAnswers)) return false;
+        if (!result.fillInBlankResult.acceptedAnswers.every((a: JsonValue) => typeof a === "string")) {
+            return false;
+        }
     }
 
     return true;

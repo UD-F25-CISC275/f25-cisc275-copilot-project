@@ -2189,7 +2189,15 @@ describe("AssignmentTaker", () => {
                     { itemId: 2, fillInBlankAnswer: "answer" },
                 ],
                 submittedResults: [
-                    { itemId: 1, mcqResult: { passed: true, feedbackPerChoice: {} } },
+                    { 
+                        itemId: 1, 
+                        mcqResult: { 
+                            passed: true, 
+                            selectedAnswers: [0],
+                            correctAnswers: [0],
+                            feedbackPerChoice: [] 
+                        } 
+                    },
                 ],
                 attemptHistory: {},
                 pendingGradingItems: [],

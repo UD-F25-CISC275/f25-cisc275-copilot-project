@@ -38,12 +38,18 @@ const validSubmission: SubmissionBundle = {
             itemId: 1, 
             mcqResult: { 
                 passed: true, 
-                feedbackPerChoice: { "0": "Correct!", "1": "Also correct!" } 
+                selectedAnswers: [0, 1],
+                correctAnswers: [0, 1],
+                feedbackPerChoice: ["Correct!", "Also correct!"] 
             } 
         },
         { 
             itemId: 2, 
-            fillInBlankResult: { passed: false } 
+            fillInBlankResult: { 
+                passed: false,
+                studentAnswer: "test answer",
+                acceptedAnswers: ["correct answer"]
+            } 
         },
     ],
     attemptHistory: {
@@ -56,7 +62,9 @@ const validSubmission: SubmissionBundle = {
                         itemId: 1, 
                         mcqResult: { 
                             passed: false, 
-                            feedbackPerChoice: { "0": "Try again" } 
+                            selectedAnswers: [1],
+                            correctAnswers: [0],
+                            feedbackPerChoice: ["Try again"] 
                         } 
                     },
                 ],
@@ -222,7 +230,7 @@ describe("isValidSubmissionSchema", () => {
     test("rejects submission with invalid submittedResult structure", () => {
         const invalid = { 
             ...validSubmission, 
-            submittedResults: [{ mcqResult: { passed: true, feedbackPerChoice: {} } }] // missing itemId
+            submittedResults: [{ mcqResult: { passed: true } }] // missing itemId and required mcqResult fields
         };
         expect(isValidSubmissionSchema(invalid)).toBe(false);
     });
