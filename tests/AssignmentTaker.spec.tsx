@@ -229,7 +229,7 @@ describe("AssignmentTaker", () => {
         expect(screen.getByText("✗ Incorrect")).toBeInTheDocument();
     });
 
-    test("disables submit button after submission", () => {
+    test("allows resubmission after initial submission", () => {
         const assignment: Assignment = {
             id: 1,
             title: "Test Assignment",
@@ -252,8 +252,8 @@ describe("AssignmentTaker", () => {
 
         fireEvent.click(submitButton);
 
-        expect(submitButton).toBeDisabled();
-        expect(submitButton).toHaveTextContent("Submitted");
+        expect(submitButton).not.toBeDisabled();
+        expect(submitButton).toHaveTextContent("Submit Again");
     });
 
     test("disables inputs after submission", () => {
@@ -1385,6 +1385,14 @@ describe("AssignmentTaker", () => {
             // First submission
             fireEvent.click(screen.getByTestId("submit-button"));
             expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+            
+            // Second submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 2");
+            
+            // Third submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 3");
         });
 
         test("maintains separate attempt counts for different pages", () => {
@@ -1457,6 +1465,84 @@ describe("AssignmentTaker", () => {
             // Verify incorrect feedback is shown
             expect(screen.getByText("✗ Incorrect")).toBeInTheDocument();
             expect(screen.getByTestId("attempt-counter")).toHaveTextContent("Attempt 1");
+        });
+
+        test("displays past attempts history after multiple submissions", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "fill-in-blank",
+                        question: "What is 2+2?",
+                        acceptedAnswers: ["4"],
+                        caseSensitive: false,
+                        trimWhitespace: true,
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const input = screen.getByTestId("fill-blank-input-1");
+
+            // First submission - incorrect
+            fireEvent.change(input, { target: { value: "3" } });
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // No past attempts yet (only 1 attempt)
+            expect(screen.queryByTestId("attempt-history")).not.toBeInTheDocument();
+
+            // Second submission - correct
+            fireEvent.change(input, { target: { value: "4" } });
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Past attempts section should now appear
+            expect(screen.getByTestId("attempt-history")).toBeInTheDocument();
+            expect(screen.getByText("Past Attempts")).toBeInTheDocument();
+            expect(screen.getByTestId("past-attempt-1")).toBeInTheDocument();
+            
+            // Third submission
+            fireEvent.click(screen.getByTestId("submit-button"));
+            
+            // Should show 2 past attempts
+            expect(screen.getByTestId("past-attempt-1")).toBeInTheDocument();
+            expect(screen.getByTestId("past-attempt-2")).toBeInTheDocument();
+        });
+
+        test("shows results in past attempts history", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    {
+                        id: 1,
+                        type: "multiple-choice",
+                        question: "What is 2+2?",
+                        choices: ["3", "4", "5"],
+                        correctAnswers: [1],
+                        choiceFeedback: [],
+                    },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            // First submission - wrong answer
+            const wrongChoice = screen.getByTestId("mcq-choice-1-0");
+            fireEvent.click(wrongChoice);
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Second submission - correct answer
+            const correctChoice = screen.getByTestId("mcq-choice-1-1");
+            fireEvent.click(correctChoice);
+            fireEvent.click(screen.getByTestId("submit-button"));
+
+            // Check past attempts section shows the first attempt result
+            const pastAttempt = screen.getByTestId("past-attempt-1");
+            expect(pastAttempt).toBeInTheDocument();
+            expect(pastAttempt).toHaveTextContent("✗ Incorrect");
         });
     });
 });

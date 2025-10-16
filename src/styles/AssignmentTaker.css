@@ -212,6 +212,88 @@
     display: inline-block;
 }
 
+.attempt-history-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+}
+
+.attempt-history-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #aaa;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.attempt-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.past-attempt {
+    background-color: #242424;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+}
+
+.attempt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+}
+
+.attempt-header strong {
+    color: #ddd;
+    font-size: 0.95rem;
+}
+
+.attempt-time {
+    color: #888;
+    font-size: 0.85rem;
+}
+
+.attempt-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.item-label {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.result-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.result-badge.passed {
+    background-color: #1a4d1a;
+    color: #4ade80;
+}
+
+.result-badge.failed {
+    background-color: #4d1a1a;
+    color: #f87171;
+}
+
 .taker-footer {
     display: flex;
     justify-content: center;
