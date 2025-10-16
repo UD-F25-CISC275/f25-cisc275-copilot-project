@@ -84,19 +84,28 @@ export function App() {
                 const importedAssignment =
                     await importAssignmentFromFile(file);
 
-                // Assign a new unique ID to avoid conflicts
-                const newAssignment: Assignment = {
-                    ...importedAssignment,
-                    id: nextId,
-                };
+                // Use functional updates to get the latest state
+                setNextId((prevNextId) => {
+                    const newId = prevNextId;
+                    
+                    // Assign a new unique ID to avoid conflicts
+                    const newAssignment: Assignment = {
+                        ...importedAssignment,
+                        id: newId,
+                    };
 
-                // Add to assignments list
-                setAssignments([...assignments, newAssignment]);
-                setNextId(nextId + 1);
+                    // Add to assignments list
+                    setAssignments((prevAssignments) => [
+                        ...prevAssignments,
+                        newAssignment,
+                    ]);
 
-                // Navigate to editor to edit the imported assignment
-                setEditingAssignmentId(newAssignment.id);
-                setCurrentView("editor");
+                    // Navigate to editor to edit the imported assignment
+                    setEditingAssignmentId(newId);
+                    setCurrentView("editor");
+
+                    return prevNextId + 1;
+                });
             } catch (error) {
                 // Show error message to user
                 const errorMessage =

@@ -124,6 +124,19 @@ export function isValidAssignmentSchema(data: JsonValue): data is Assignment {
         return false;
     }
 
+    // Validate optional fields if present
+    if (data.description !== undefined && typeof data.description !== "string") {
+        return false;
+    }
+
+    if (data.estimatedTime !== undefined && typeof data.estimatedTime !== "number") {
+        return false;
+    }
+
+    if (data.notes !== undefined && typeof data.notes !== "string") {
+        return false;
+    }
+
     // Validate items array
     return validateItems(data.items);
 }
