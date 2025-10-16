@@ -1756,4 +1756,84 @@ describe("AssignmentTaker", () => {
             expect(pastAttempt).toHaveTextContent("✗ Incorrect");
         });
     });
+
+    describe("Collaborators Panel", () => {
+        test("renders collaborators panel", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [{ id: 1, type: "text", content: "Test content" }],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
+
+            expect(screen.getByTestId("collaborators-panel")).toBeInTheDocument();
+            expect(screen.getByText("Collaborators")).toBeInTheDocument();
+        });
+
+        test("adds and displays collaborators", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [{ id: 1, type: "text", content: "Test content" }],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
+
+            const nameInput = screen.getByTestId("collaborator-name-input");
+            const emailInput = screen.getByTestId("collaborator-email-input");
+            const addButton = screen.getByTestId("add-collaborator-button");
+
+            fireEvent.change(nameInput, { target: { value: "John Doe" } });
+            fireEvent.change(emailInput, { target: { value: "john@example.com" } });
+            fireEvent.click(addButton);
+
+            expect(screen.getByText("John Doe")).toBeInTheDocument();
+            expect(screen.getByText("john@example.com")).toBeInTheDocument();
+        });
+
+        test("saves collaborators to localStorage", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [{ id: 1, type: "text", content: "Test content" }],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
+
+            const nameInput = screen.getByTestId("collaborator-name-input");
+            const emailInput = screen.getByTestId("collaborator-email-input");
+            const addButton = screen.getByTestId("add-collaborator-button");
+
+            fireEvent.change(nameInput, { target: { value: "Jane Smith" } });
+            fireEvent.change(emailInput, { target: { value: "jane@example.com" } });
+            fireEvent.click(addButton);
+
+            const savedData = localStorage.getItem("assignment-progress-1");
+            expect(savedData).toBeTruthy();
+            
+            if (savedData) {
+                const progress = JSON.parse(savedData);
+                expect(progress.collaborators).toHaveLength(1);
+                expect(progress.collaborators[0].name).toBe("Jane Smith");
+                expect(progress.collaborators[0].email).toBe("jane@example.com");
+            }
+        });
+
+        test("export button is present", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [{ id: 1, type: "text", content: "Test content" }],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+            startAssignment();
+
+            expect(screen.getByTestId("export-button")).toBeInTheDocument();
+        });
+    });
 });

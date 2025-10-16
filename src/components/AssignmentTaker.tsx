@@ -3,6 +3,8 @@ import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, CodeFile, PageBreakItem } from "../types/AssignmentItem";
 import { gradeMCQ, gradeFillInBlank, type MCQGradingResult, type FillInBlankGradingResult } from "../utils/grading";
 import { usePyodide } from "../hooks/usePyodide";
+import type { Collaborator } from "../types/Collaborator";
+import { CollaboratorsPanel } from "./CollaboratorsPanel";
 import "../styles/AssignmentTaker.css";
 
 // Python code to redirect stdout for capturing print statements
@@ -59,6 +61,7 @@ interface SavedProgress {
     answers: StudentAnswer[];
     submittedResults: SubmittedResult[];
     attemptHistory: Partial<Record<number, AttemptHistory[]>>;
+    collaborators?: Collaborator[];
 }
 
 export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
@@ -72,6 +75,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [attemptHistory, setAttemptHistory] = useState<Partial<Record<number, AttemptHistory[]>>>({});
     const [hasStarted, setHasStarted] = useState(false);
     const [isRestarting, setIsRestarting] = useState(false);
+    const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     // Load saved progress from localStorage on mount
@@ -86,6 +90,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 setAnswers(progress.answers);
                 setSubmittedResults(progress.submittedResults);
                 setAttemptHistory(progress.attemptHistory);
+                setCollaborators(progress.collaborators || []);
             } catch (error) {
                 console.error("Failed to load saved progress:", error);
             }
@@ -101,10 +106,11 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 answers,
                 submittedResults,
                 attemptHistory,
+                collaborators,
             };
             localStorage.setItem(savedProgressKey, JSON.stringify(progress));
         }
-    }, [assignment.id, currentPage, answers, submittedResults, attemptHistory, showIntro, hasStarted, isRestarting]);
+    }, [assignment.id, currentPage, answers, submittedResults, attemptHistory, collaborators, showIntro, hasStarted, isRestarting]);
 
     // Split items into pages based on page-break items
     const pages: Page[] = [];
@@ -156,6 +162,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         setAnswers([]);
         setSubmittedResults([]);
         setAttemptHistory({});
+        setCollaborators([]);
         setShowIntro(false);
         setHasStarted(true);
         // Clear restart flag after state updates
@@ -468,6 +475,29 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 [currentPage]: [...pageHistory, newAttempt]
             };
         });
+    };
+
+    const handleExportSubmission = () => {
+        const submission = {
+            assignmentId: assignment.id,
+            assignmentTitle: assignment.title,
+            timestamp: new Date().toISOString(),
+            collaborators,
+            answers,
+            submittedResults,
+            attemptHistory,
+        };
+
+        const dataStr = JSON.stringify(submission, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `submission-${assignment.id}-${Date.now()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     };
 
     const renderItem = (item: AssignmentItem) => {
@@ -863,6 +893,11 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                 );
             })()}
 
+            <CollaboratorsPanel
+                collaborators={collaborators}
+                onCollaboratorsChange={setCollaborators}
+            />
+
             <div className="taker-footer">
                 <div className="navigation-buttons">
                     {currentPage > 0 && (
@@ -900,6 +935,14 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         </button>
                     )}
                 </div>
+                
+                <button
+                    onClick={handleExportSubmission}
+                    className="export-button"
+                    data-testid="export-button"
+                >
+                    📥 Export Submission
+                </button>
             </div>
         </div>
     );
