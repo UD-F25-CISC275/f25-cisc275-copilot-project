@@ -4,6 +4,7 @@ import type { AssignmentItem, ItemType, CodeFile } from "../types/AssignmentItem
 import { MarkdownEditor } from "./MarkdownEditor";
 import { GradingConfigEditor } from "./GradingConfigEditor";
 import { usePyodide } from "../hooks/usePyodide";
+import { downloadAssignmentJSON } from "../utils/exportAssignment";
 import "../styles/AssignmentEditor.css";
 
 // Python code to redirect stdout for capturing print statements
@@ -763,6 +764,18 @@ export function AssignmentEditor({
         });
     };
 
+    const handleExport = () => {
+        const assignmentToExport: Assignment = {
+            ...assignment,
+            title: metadata.title,
+            description: metadata.description || undefined,
+            estimatedTime: metadata.estimatedTime || undefined,
+            notes: metadata.notes || undefined,
+            items,
+        };
+        downloadAssignmentJSON(assignmentToExport);
+    };
+
     const handleEssayPreviewChange = (itemId: number, value: string) => {
         setEssayPreviewResponses((prev) => {
             const next = new Map(prev);
@@ -807,13 +820,22 @@ export function AssignmentEditor({
                     ← Back to Dashboard
                 </button>
                 <h1>Edit Assignment: {metadata.title}</h1>
-                <button
-                    onClick={handleSave}
-                    className="save-button"
-                    data-testid="save-button"
-                >
-                    Save
-                </button>
+                <div className="header-buttons">
+                    <button
+                        onClick={handleExport}
+                        className="export-button"
+                        data-testid="export-button"
+                    >
+                        Export
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        className="save-button"
+                        data-testid="save-button"
+                    >
+                        Save
+                    </button>
+                </div>
             </div>
 
             <div className="metadata-panel" data-testid="metadata-panel">
