@@ -493,7 +493,8 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         const url = URL.createObjectURL(dataBlob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = `submission-${assignment.id}-${Date.now()}.json`;
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        link.download = `submission-${assignment.id}-${timestamp}.json`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -941,7 +942,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                     className="export-button"
                     data-testid="export-button"
                 >
-                    📥 Export Submission
+                    <span aria-hidden="true">📥</span> Export Submission
                 </button>
             </div>
         </div>
