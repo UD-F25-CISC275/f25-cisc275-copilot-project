@@ -70,6 +70,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [currentPage, setCurrentPage] = useState(0);
     const [attemptHistory, setAttemptHistory] = useState<Partial<Record<number, AttemptHistory[]>>>({});
     const [hasStarted, setHasStarted] = useState(false);
+    const [isRestarting, setIsRestarting] = useState(false);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
 
     // Load saved progress from localStorage on mount
@@ -92,7 +93,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
 
     // Save progress to localStorage whenever relevant state changes
     useEffect(() => {
-        if (!showIntro && hasStarted) {
+        if (!showIntro && hasStarted && !isRestarting) {
             const savedProgressKey = `assignment-progress-${assignment.id}`;
             const progress: SavedProgress = {
                 currentPage,
@@ -102,7 +103,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
             };
             localStorage.setItem(savedProgressKey, JSON.stringify(progress));
         }
-    }, [assignment.id, currentPage, answers, submittedResults, attemptHistory, showIntro, hasStarted]);
+    }, [assignment.id, currentPage, answers, submittedResults, attemptHistory, showIntro, hasStarted, isRestarting]);
 
     // Split items into pages based on page-break items
     const pages: Page[] = [];
@@ -141,26 +142,23 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         return localStorage.getItem(savedProgressKey) !== null;
     };
 
-    const handleStartAssignment = () => {
-        setShowIntro(false);
-        setHasStarted(true);
-    };
-
-    const handleResumeAssignment = () => {
+    const handleStartOrResumeAssignment = () => {
         setShowIntro(false);
         setHasStarted(true);
     };
 
     const handleRestartAssignment = () => {
         const savedProgressKey = `assignment-progress-${assignment.id}`;
+        setIsRestarting(true);
         localStorage.removeItem(savedProgressKey);
         setCurrentPage(0);
         setAnswers([]);
         setSubmittedResults([]);
         setAttemptHistory({});
         setShowIntro(false);
-        // Don't set hasStarted yet - let the next state change trigger it
-        setTimeout(() => setHasStarted(true), 0);
+        setHasStarted(true);
+        // Clear restart flag after state updates
+        setTimeout(() => setIsRestarting(false), 0);
     };
 
     // If showing intro screen, render that instead
@@ -207,7 +205,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                         {hasProgress ? (
                             <>
                                 <button
-                                    onClick={handleResumeAssignment}
+                                    onClick={handleStartOrResumeAssignment}
                                     className="resume-button"
                                     data-testid="resume-button"
                                 >
@@ -223,7 +221,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                             </>
                         ) : (
                             <button
-                                onClick={handleStartAssignment}
+                                onClick={handleStartOrResumeAssignment}
                                 className="start-button"
                                 data-testid="start-button"
                             >
