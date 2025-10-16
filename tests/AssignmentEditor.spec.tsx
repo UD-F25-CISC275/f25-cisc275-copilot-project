@@ -1732,5 +1732,78 @@ describe("AssignmentEditor", () => {
             );
         });
     });
+
+    test("export button is present", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const exportButton = screen.getByTestId("export-button");
+        expect(exportButton).toBeInTheDocument();
+        expect(exportButton).toHaveTextContent("Export");
+    });
+
+    test("export button triggers download", () => {
+        const mockSave = jest.fn();
+        const mockBack = jest.fn();
+
+        // Mock URL methods on window.URL
+        window.URL.createObjectURL = jest.fn(() => "blob:mock-url");
+        window.URL.revokeObjectURL = jest.fn();
+
+        // Mock document.createElement to track link creation
+        const originalCreateElement = document.createElement.bind(document);
+        const mockLink: Partial<HTMLAnchorElement> = {
+            href: "",
+            download: "",
+            click: jest.fn(),
+            remove: jest.fn(),
+        };
+        jest.spyOn(document, "createElement").mockImplementation((tagName) => {
+            if (tagName === "a") {
+                return mockLink as HTMLAnchorElement;
+            }
+            return originalCreateElement(tagName);
+        });
+
+        // Mock appendChild and removeChild only for the link
+        const originalAppendChild = document.body.appendChild.bind(document.body);
+        const originalRemoveChild = document.body.removeChild.bind(document.body);
+        
+        jest.spyOn(document.body, "appendChild").mockImplementation((node) => {
+            if (node === mockLink) {
+                return mockLink as Node;
+            }
+            return originalAppendChild(node);
+        });
+        
+        jest.spyOn(document.body, "removeChild").mockImplementation((node) => {
+            if (node === mockLink) {
+                return mockLink as Node;
+            }
+            return originalRemoveChild(node);
+        });
+
+        render(
+            <AssignmentEditor
+                assignment={mockAssignment}
+                onSave={mockSave}
+                onBack={mockBack}
+            />
+        );
+
+        const exportButton = screen.getByTestId("export-button");
+        fireEvent.click(exportButton);
+
+        expect(mockLink.click).toHaveBeenCalled();
+        expect(mockLink.download).toContain("Test_Assignment.json");
+    });
 });
 
