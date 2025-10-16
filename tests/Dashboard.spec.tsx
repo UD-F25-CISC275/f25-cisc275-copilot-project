@@ -21,6 +21,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -28,6 +29,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -43,6 +45,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -50,6 +53,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -62,6 +66,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -69,6 +74,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -82,6 +88,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -89,6 +96,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -102,6 +110,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -109,6 +118,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -124,6 +134,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -131,6 +142,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -143,6 +155,7 @@ describe("Dashboard", () => {
         const mockEdit = jest.fn();
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
 
         render(
             <Dashboard
@@ -150,6 +163,7 @@ describe("Dashboard", () => {
                 onEdit={mockEdit}
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
             />
         );
 
@@ -157,5 +171,76 @@ describe("Dashboard", () => {
         fireEvent.click(newButton);
 
         expect(mockCreateAssignment).toHaveBeenCalledTimes(1);
+    });
+
+    test("displays Import Assignment button", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
+            />
+        );
+
+        const importButton = screen.getByTestId("import-assignment-button");
+        expect(importButton).toBeInTheDocument();
+        expect(importButton).toHaveTextContent("Import Assignment");
+    });
+
+    test("calls onImportAssignment when file is selected", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
+            />
+        );
+
+        const fileInput = screen.getByTestId("file-input");
+        const file = new File(
+            ['{"id": 1, "title": "Test", "items": []}'],
+            "test.json",
+            { type: "application/json" }
+        );
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        expect(mockImportAssignment).toHaveBeenCalledWith(file);
+    });
+
+    test("file input accepts only JSON files", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
+            />
+        );
+
+        const fileInput = screen.getByTestId(
+            "file-input"
+        ) as HTMLInputElement;
+        expect(fileInput.accept).toBe(".json,application/json");
     });
 });

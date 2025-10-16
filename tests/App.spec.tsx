@@ -1,6 +1,18 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 import { App } from "../src/App";
+
+// Mock the importAssignmentFromFile function
+jest.mock("../src/utils/importAssignment", () => ({
+    importAssignmentFromFile: jest.fn(),
+}));
+
+import { importAssignmentFromFile } from "../src/utils/importAssignment";
+
+const mockedImportAssignmentFromFile =
+    importAssignmentFromFile as jest.MockedFunction<
+        typeof importAssignmentFromFile
+    >;
 
 test("App component displays dashboard", () => {
     render(<App />);
@@ -58,4 +70,175 @@ test("App component creates multiple new assignments with unique IDs", () => {
         name: /Edit|Take/i,
     });
     expect(assignmentItems).toHaveLength(10); // 5 assignments * 2 buttons each
+});
+
+describe("App import functionality", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        // Mock window.alert
+        jest.spyOn(window, "alert").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test("imports assignment and navigates to editor", async () => {
+        const mockImportedAssignment = {
+            id: 999,
+            title: "Imported Assignment",
+            description: "This was imported",
+            items: [
+                {
+                    id: 1,
+                    type: "text" as const,
+                    content: "Imported content",
+                },
+            ],
+        };
+
+        mockedImportAssignmentFromFile.mockResolvedValue(
+            mockImportedAssignment
+        );
+
+        render(<App />);
+
+        const fileInput = screen.getByTestId("file-input");
+        const file = new File(
+            [JSON.stringify(mockImportedAssignment)],
+            "test.json",
+            { type: "application/json" }
+        );
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        // Wait for the async import to complete and editor to appear
+        await waitFor(() => {
+            expect(screen.getByText(/Edit Assignment:/i)).toBeInTheDocument();
+        });
+
+        // Verify we're in the editor view
+        expect(screen.getByTestId("back-button")).toBeInTheDocument();
+        expect(screen.getByTestId("save-button")).toBeInTheDocument();
+    });
+
+    test("assigns unique ID to imported assignment", async () => {
+        const mockImportedAssignment = {
+            id: 1, // Original ID from the export
+            title: "Imported Assignment",
+            items: [],
+        };
+
+        mockedImportAssignmentFromFile.mockResolvedValue(
+            mockImportedAssignment
+        );
+
+        render(<App />);
+
+        const fileInput = screen.getByTestId("file-input");
+        const file = new File(
+            [JSON.stringify(mockImportedAssignment)],
+            "test.json",
+            { type: "application/json" }
+        );
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        // Wait for editor to appear
+        await waitFor(() => {
+            expect(screen.getByText(/Edit Assignment:/i)).toBeInTheDocument();
+        });
+
+        // Go back to dashboard
+        const backButton = screen.getByTestId("back-button");
+        fireEvent.click(backButton);
+
+        // The imported assignment should have a new ID (4, since there are 3 initial assignments)
+        await waitFor(() => {
+            expect(screen.getByTestId("assignment-4")).toBeInTheDocument();
+        });
+    });
+
+    test("shows alert when import fails", async () => {
+        mockedImportAssignmentFromFile.mockRejectedValue(
+            new Error("Invalid JSON")
+        );
+
+        render(<App />);
+
+        const fileInput = screen.getByTestId("file-input");
+        const file = new File(["invalid json"], "test.json", {
+            type: "application/json",
+        });
+
+        fireEvent.change(fileInput, { target: { files: [file] } });
+
+        // Wait for the error alert
+        await waitFor(() => {
+            expect(window.alert).toHaveBeenCalledWith(
+                "Failed to import assignment: Invalid JSON"
+            );
+        });
+
+        // Verify we're still on the dashboard
+        expect(screen.getByText("Assignment Dashboard")).toBeInTheDocument();
+    });
+
+    test("imports multiple assignments sequentially", async () => {
+        const mockAssignment1 = {
+            id: 100,
+            title: "Import 1",
+            items: [],
+        };
+
+        const mockAssignment2 = {
+            id: 200,
+            title: "Import 2",
+            items: [],
+        };
+
+        mockedImportAssignmentFromFile
+            .mockResolvedValueOnce(mockAssignment1)
+            .mockResolvedValueOnce(mockAssignment2);
+
+        render(<App />);
+
+        // Import first assignment
+        const fileInput = screen.getByTestId("file-input");
+        const file1 = new File([JSON.stringify(mockAssignment1)], "test1.json", {
+            type: "application/json",
+        });
+
+        fireEvent.change(fileInput, { target: { files: [file1] } });
+
+        await waitFor(() => {
+            expect(screen.getByText(/Edit Assignment:/i)).toBeInTheDocument();
+        });
+
+        // Go back to dashboard
+        fireEvent.click(screen.getByTestId("back-button"));
+
+        await waitFor(() => {
+            expect(screen.getByText("Assignment Dashboard")).toBeInTheDocument();
+        });
+
+        // Import second assignment
+        const file2 = new File([JSON.stringify(mockAssignment2)], "test2.json", {
+            type: "application/json",
+        });
+
+        fireEvent.change(fileInput, { target: { files: [file2] } });
+
+        await waitFor(() => {
+            expect(screen.getByText(/Edit Assignment:/i)).toBeInTheDocument();
+        });
+
+        // Go back and verify both are in the list
+        fireEvent.click(screen.getByTestId("back-button"));
+
+        await waitFor(() => {
+            expect(screen.getByTestId("assignment-4")).toBeInTheDocument();
+            expect(screen.getByTestId("assignment-5")).toBeInTheDocument();
+        });
+    });
 });

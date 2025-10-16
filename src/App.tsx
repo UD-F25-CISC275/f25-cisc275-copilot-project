@@ -4,6 +4,7 @@ import { Dashboard } from "./components/Dashboard";
 import { AssignmentEditor } from "./components/AssignmentEditor";
 import { AssignmentTaker } from "./components/AssignmentTaker";
 import type { Assignment } from "./types/Assignment";
+import { importAssignmentFromFile } from "./utils/importAssignment";
 
 const sampleAssignments: Assignment[] = [
     {
@@ -77,6 +78,36 @@ export function App() {
         setTakingAssignmentId(null);
     };
 
+    const handleImportAssignment = (file: File) => {
+        void (async () => {
+            try {
+                const importedAssignment =
+                    await importAssignmentFromFile(file);
+
+                // Assign a new unique ID to avoid conflicts
+                const newAssignment: Assignment = {
+                    ...importedAssignment,
+                    id: nextId,
+                };
+
+                // Add to assignments list
+                setAssignments([...assignments, newAssignment]);
+                setNextId(nextId + 1);
+
+                // Navigate to editor to edit the imported assignment
+                setEditingAssignmentId(newAssignment.id);
+                setCurrentView("editor");
+            } catch (error) {
+                // Show error message to user
+                const errorMessage =
+                    error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred";
+                alert(`Failed to import assignment: ${errorMessage}`);
+            }
+        })();
+    };
+
     const editingAssignment = assignments.find(
         (a) => a.id === editingAssignmentId
     );
@@ -93,6 +124,7 @@ export function App() {
                     onEdit={handleEdit}
                     onTake={handleTake}
                     onCreateAssignment={handleCreateAssignment}
+                    onImportAssignment={handleImportAssignment}
                 />
             )}
             {currentView === "editor" && editingAssignment && (
