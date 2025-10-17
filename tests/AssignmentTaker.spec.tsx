@@ -2150,4 +2150,189 @@ describe("AssignmentTaker", () => {
             expect(submission.assignmentId).toBe(42);
         });
     });
+
+    // Import Submission Tests
+    describe("Import Submission", () => {
+        test("shows import submission button on intro screen", () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            expect(screen.getByTestId("import-submission-button")).toBeInTheDocument();
+        });
+
+        test("imports valid submission and loads state", async () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [
+                    { id: 1, type: "multiple-choice", question: "Q1", choices: ["A", "B"], correctAnswers: [0] },
+                    { id: 2, type: "fill-in-blank", question: "Q2", acceptedAnswers: ["answer"] },
+                ],
+            };
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const submissionData = {
+                assignmentId: 1,
+                assignmentTitle: "Test Assignment",
+                timestamp: "2024-01-01T00:00:00.000Z",
+                currentPage: 0,
+                totalPages: 1,
+                collaborators: [{ name: "John Doe", email: "john@example.com" }],
+                answers: [
+                    { itemId: 1, mcqAnswer: [0] },
+                    { itemId: 2, fillInBlankAnswer: "answer" },
+                ],
+                submittedResults: [
+                    { 
+                        itemId: 1, 
+                        mcqResult: { 
+                            passed: true, 
+                            selectedAnswers: [0],
+                            correctAnswers: [0],
+                            feedbackPerChoice: [] 
+                        } 
+                    },
+                ],
+                attemptHistory: {},
+                pendingGradingItems: [],
+            };
+
+            const file = new File([JSON.stringify(submissionData)], "submission.json", {
+                type: "application/json",
+            });
+
+            const fileInput = screen.getByTestId("submission-file-input") as HTMLInputElement;
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            // Wait for async import to complete
+            await screen.findByText("Q1");
+
+            // Verify that the assignment was loaded (we should be past intro screen)
+            expect(screen.queryByTestId("assignment-intro")).not.toBeInTheDocument();
+            expect(screen.getByText("Q1")).toBeInTheDocument();
+        });
+
+        test("shows error when importing submission for wrong assignment", async () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [],
+            };
+
+            // Mock alert
+            const alertMock = jest.spyOn(window, "alert").mockImplementation();
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const submissionData = {
+                assignmentId: 999, // Different assignment ID
+                assignmentTitle: "Different Assignment",
+                timestamp: "2024-01-01T00:00:00.000Z",
+                currentPage: 0,
+                totalPages: 1,
+                collaborators: [],
+                answers: [],
+                submittedResults: [],
+                attemptHistory: {},
+                pendingGradingItems: [],
+            };
+
+            const file = new File([JSON.stringify(submissionData)], "submission.json", {
+                type: "application/json",
+            });
+
+            const fileInput = screen.getByTestId("submission-file-input") as HTMLInputElement;
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            // Wait a bit for the async operation
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verify error was shown
+            expect(alertMock).toHaveBeenCalledWith(
+                expect.stringContaining("This submission is for assignment")
+            );
+
+            // Should still be on intro screen
+            expect(screen.getByTestId("assignment-intro")).toBeInTheDocument();
+
+            alertMock.mockRestore();
+        });
+
+        test("shows error when importing invalid JSON", async () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [],
+            };
+
+            // Mock alert
+            const alertMock = jest.spyOn(window, "alert").mockImplementation();
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const file = new File(["{ invalid json }"], "submission.json", {
+                type: "application/json",
+            });
+
+            const fileInput = screen.getByTestId("submission-file-input") as HTMLInputElement;
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            // Wait a bit for the async operation
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verify error was shown
+            expect(alertMock).toHaveBeenCalledWith(
+                expect.stringContaining("Failed to import submission")
+            );
+
+            // Should still be on intro screen
+            expect(screen.getByTestId("assignment-intro")).toBeInTheDocument();
+
+            alertMock.mockRestore();
+        });
+
+        test("shows error when importing submission with invalid schema", async () => {
+            const assignment: Assignment = {
+                id: 1,
+                title: "Test Assignment",
+                items: [],
+            };
+
+            // Mock alert
+            const alertMock = jest.spyOn(window, "alert").mockImplementation();
+
+            render(<AssignmentTaker assignment={assignment} onBack={mockBack} />);
+
+            const invalidData = {
+                assignmentId: 1,
+                // Missing required fields
+            };
+
+            const file = new File([JSON.stringify(invalidData)], "submission.json", {
+                type: "application/json",
+            });
+
+            const fileInput = screen.getByTestId("submission-file-input") as HTMLInputElement;
+            fireEvent.change(fileInput, { target: { files: [file] } });
+
+            // Wait a bit for the async operation
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Verify error was shown
+            expect(alertMock).toHaveBeenCalledWith(
+                expect.stringContaining("Invalid submission schema")
+            );
+
+            // Should still be on intro screen
+            expect(screen.getByTestId("assignment-intro")).toBeInTheDocument();
+
+            alertMock.mockRestore();
+        });
+    });
 });

@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Assignment } from "../types/Assignment";
 import type { AssignmentItem, CodeFile, PageBreakItem } from "../types/AssignmentItem";
 import { gradeMCQ, gradeFillInBlank, type MCQGradingResult, type FillInBlankGradingResult } from "../utils/grading";
 import { usePyodide } from "../hooks/usePyodide";
 import type { Collaborator } from "../types/Collaborator";
 import { CollaboratorsPanel } from "./CollaboratorsPanel";
+import { importSubmissionFromFile } from "../utils/importSubmission";
 import "../styles/AssignmentTaker.css";
 
 // Python code to redirect stdout for capturing print statements
@@ -77,6 +78,7 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
     const [isRestarting, setIsRestarting] = useState(false);
     const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
     const { pyodide, loading: pyodideLoading, error: pyodideError } = usePyodide();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Load saved progress from localStorage on mount
     useEffect(() => {
@@ -169,6 +171,78 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
         setTimeout(() => setIsRestarting(false), 0);
     };
 
+    const handleImportClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleImportSubmission = (file: File) => {
+        void (async () => {
+            try {
+                const submission = await importSubmissionFromFile(file);
+
+                // Verify that the submission matches this assignment
+                if (submission.assignmentId !== assignment.id) {
+                    alert(
+                        `This submission is for assignment "${submission.assignmentTitle}" (ID: ${submission.assignmentId}), ` +
+                        `but you are currently viewing "${assignment.title}" (ID: ${assignment.id}). ` +
+                        `Please make sure you're importing the correct submission.`
+                    );
+                    return;
+                }
+
+                // Convert timestamp strings back to Date objects for attemptHistory
+                const processedAttemptHistory: Partial<Record<number, AttemptHistory[]>> = {};
+                for (const key of Object.keys(submission.attemptHistory)) {
+                    const pageNum = parseInt(key, 10);
+                    const attempts = submission.attemptHistory[pageNum];
+                    if (attempts) {
+                        processedAttemptHistory[pageNum] = attempts.map(attempt => ({
+                            ...attempt,
+                            timestamp: new Date(attempt.timestamp)
+                        }));
+                    }
+                }
+
+                // Load the submission data into state
+                setCurrentPage(submission.currentPage);
+                setAnswers(submission.answers);
+                setSubmittedResults(submission.submittedResults);
+                setAttemptHistory(processedAttemptHistory);
+                setCollaborators(submission.collaborators);
+
+                // Save to localStorage for persistence
+                const savedProgressKey = `assignment-progress-${assignment.id}`;
+                const progress: SavedProgress = {
+                    currentPage: submission.currentPage,
+                    answers: submission.answers,
+                    submittedResults: submission.submittedResults,
+                    attemptHistory: processedAttemptHistory,
+                    collaborators: submission.collaborators,
+                };
+                localStorage.setItem(savedProgressKey, JSON.stringify(progress));
+
+                // Start the assignment
+                setShowIntro(false);
+                setHasStarted(true);
+            } catch (error) {
+                const errorMessage =
+                    error instanceof Error
+                        ? error.message
+                        : "Unknown error occurred";
+                alert(`Failed to import submission: ${errorMessage}`);
+            }
+        })();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            handleImportSubmission(file);
+            // Reset the input so the same file can be selected again
+            event.target.value = "";
+        }
+    };
+
     // If showing intro screen, render that instead
     if (showIntro) {
         const hasProgress = hasSavedProgress();
@@ -236,6 +310,21 @@ export function AssignmentTaker({ assignment, onBack }: AssignmentTakerProps) {
                                 Start Assignment
                             </button>
                         )}
+                        <button
+                            onClick={handleImportClick}
+                            className="import-button"
+                            data-testid="import-submission-button"
+                        >
+                            <span aria-hidden="true">📥</span> Import Submission
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".json,application/json"
+                            onChange={handleFileChange}
+                            style={{ display: "none" }}
+                            data-testid="submission-file-input"
+                        />
                     </div>
                 </div>
             </div>
