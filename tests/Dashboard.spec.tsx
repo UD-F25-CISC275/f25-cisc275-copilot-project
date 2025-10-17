@@ -22,6 +22,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -30,6 +31,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -46,6 +48,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -54,6 +57,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -67,6 +71,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -75,6 +80,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -89,6 +95,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -97,6 +104,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -111,6 +119,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -119,6 +128,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -135,6 +145,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -143,6 +154,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -156,6 +168,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -164,6 +177,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -178,6 +192,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -186,6 +201,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -199,6 +215,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -207,6 +224,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -227,6 +245,7 @@ describe("Dashboard", () => {
         const mockTake = jest.fn();
         const mockCreateAssignment = jest.fn();
         const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
 
         render(
             <Dashboard
@@ -235,6 +254,7 @@ describe("Dashboard", () => {
                 onTake={mockTake}
                 onCreateAssignment={mockCreateAssignment}
                 onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
             />
         );
 
@@ -242,5 +262,52 @@ describe("Dashboard", () => {
             "file-input"
         ) as HTMLInputElement;
         expect(fileInput.accept).toBe(".json,application/json");
+    });
+
+    test("displays Reset to Examples button", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
+            />
+        );
+
+        const resetButton = screen.getByTestId("reset-button");
+        expect(resetButton).toBeInTheDocument();
+        expect(resetButton).toHaveTextContent("Reset to Examples");
+    });
+
+    test("calls onResetToExamples when Reset button is clicked", () => {
+        const mockEdit = jest.fn();
+        const mockTake = jest.fn();
+        const mockCreateAssignment = jest.fn();
+        const mockImportAssignment = jest.fn();
+        const mockResetToExamples = jest.fn();
+
+        render(
+            <Dashboard
+                assignments={mockAssignments}
+                onEdit={mockEdit}
+                onTake={mockTake}
+                onCreateAssignment={mockCreateAssignment}
+                onImportAssignment={mockImportAssignment}
+                onResetToExamples={mockResetToExamples}
+            />
+        );
+
+        const resetButton = screen.getByTestId("reset-button");
+        fireEvent.click(resetButton);
+
+        expect(mockResetToExamples).toHaveBeenCalledTimes(1);
     });
 });

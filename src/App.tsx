@@ -1,36 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
 import { Dashboard } from "./components/Dashboard";
 import { AssignmentEditor } from "./components/AssignmentEditor";
 import { AssignmentTaker } from "./components/AssignmentTaker";
 import type { Assignment } from "./types/Assignment";
 import { importAssignmentFromFile } from "./utils/importAssignment";
-
-const sampleAssignments: Assignment[] = [
-    {
-        id: 1,
-        title: "Introduction to TypeScript",
-        description: "Learn the basics of TypeScript and type annotations",
-        items: [],
-    },
-    {
-        id: 2,
-        title: "React Hooks",
-        description: "Master useState, useEffect, and custom hooks",
-        items: [],
-    },
-    {
-        id: 3,
-        title: "Advanced React Patterns",
-        items: [],
-    },
-];
+import {
+    loadAssignments,
+    saveAssignments,
+    getSampleAssignments,
+} from "./utils/assignmentStorage";
 
 export function App() {
-    const [assignments, setAssignments] =
-        useState<Assignment[]>(sampleAssignments);
-    const [nextId, setNextId] = useState<number>(
-        Math.max(...sampleAssignments.map((a) => a.id)) + 1
+    const [assignments, setAssignments] = useState<Assignment[]>(() =>
+        loadAssignments()
+    );
+    const [nextId, setNextId] = useState<number>(() =>
+        Math.max(...loadAssignments().map((a) => a.id)) + 1
     );
     const [currentView, setCurrentView] = useState<"dashboard" | "editor" | "taker">(
         "dashboard"
@@ -41,6 +27,11 @@ export function App() {
     const [takingAssignmentId, setTakingAssignmentId] = useState<
         number | null
     >(null);
+
+    // Save assignments to localStorage whenever they change
+    useEffect(() => {
+        saveAssignments(assignments);
+    }, [assignments]);
 
     const handleEdit = (assignmentId: number) => {
         setEditingAssignmentId(assignmentId);
@@ -115,6 +106,12 @@ export function App() {
         })();
     };
 
+    const handleResetToExamples = () => {
+        const examples = getSampleAssignments();
+        setAssignments(examples);
+        setNextId(Math.max(...examples.map((a) => a.id)) + 1);
+    };
+
     const editingAssignment = assignments.find(
         (a) => a.id === editingAssignmentId
     );
@@ -132,6 +129,7 @@ export function App() {
                     onTake={handleTake}
                     onCreateAssignment={handleCreateAssignment}
                     onImportAssignment={handleImportAssignment}
+                    onResetToExamples={handleResetToExamples}
                 />
             )}
             {currentView === "editor" && editingAssignment && (
