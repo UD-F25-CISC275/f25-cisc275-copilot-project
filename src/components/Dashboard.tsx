@@ -7,6 +7,7 @@ interface DashboardProps {
     onTake: (assignmentId: number) => void;
     onCreateAssignment: () => void;
     onImportAssignment: (file: File) => void;
+    onResetToExamples: () => void;
 }
 
 export function Dashboard({
@@ -15,6 +16,7 @@ export function Dashboard({
     onTake,
     onCreateAssignment,
     onImportAssignment,
+    onResetToExamples,
 }: DashboardProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -48,6 +50,13 @@ export function Dashboard({
                     data-testid="import-assignment-button"
                 >
                     Import Assignment
+                </button>
+                <button
+                    onClick={onResetToExamples}
+                    className="reset-button"
+                    data-testid="reset-button"
+                >
+                    Reset to Examples
                 </button>
                 <input
                     ref={fileInputRef}

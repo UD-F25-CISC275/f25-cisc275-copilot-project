@@ -2,6 +2,28 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
 import { App } from "../src/App";
 
+// Mock localStorage
+const localStorageMock = (() => {
+    let store: Record<string, string> = {};
+
+    return {
+        getItem: (key: string) => store[key] || null,
+        setItem: (key: string, value: string) => {
+            store[key] = value;
+        },
+        removeItem: (key: string) => {
+            delete store[key];
+        },
+        clear: () => {
+            store = {};
+        },
+    };
+})();
+
+Object.defineProperty(window, "localStorage", {
+    value: localStorageMock,
+});
+
 // Mock the importAssignmentFromFile function
 jest.mock("../src/utils/importAssignment", () => ({
     importAssignmentFromFile: jest.fn(),
@@ -13,6 +35,12 @@ const mockedImportAssignmentFromFile =
     importAssignmentFromFile as jest.MockedFunction<
         typeof importAssignmentFromFile
     >;
+
+describe("App Component", () => {
+    beforeEach(() => {
+        localStorage.clear();
+        jest.clearAllMocks();
+    });
 
 test("App component displays dashboard", () => {
     render(<App />);
@@ -222,4 +250,92 @@ describe("App import functionality", () => {
         // Verify imported assignment is in the list
         expect(screen.getByText("Import 1")).toBeInTheDocument();
     });
+});
+
+describe("App localStorage integration", () => {
+    beforeEach(() => {
+        localStorage.clear();
+        jest.clearAllMocks();
+    });
+
+    test("loads sample assignments on first visit", () => {
+        render(<App />);
+
+        expect(screen.getByText("Introduction to TypeScript")).toBeInTheDocument();
+        expect(screen.getByText("React Hooks")).toBeInTheDocument();
+        expect(screen.getByText("Advanced React Patterns")).toBeInTheDocument();
+    });
+
+    test("persists new assignments to localStorage", () => {
+        render(<App />);
+
+        const newButton = screen.getByTestId("new-assignment-button");
+        fireEvent.click(newButton);
+
+        // Check if localStorage was updated
+        const stored = localStorage.getItem("coflowcode-assignments");
+        expect(stored).not.toBeNull();
+
+        if (stored) {
+            const assignments = JSON.parse(stored);
+            expect(assignments).toHaveLength(4); // 3 sample + 1 new
+        }
+    });
+
+    test("loads assignments from localStorage on subsequent visit", () => {
+        // Set up localStorage with custom data
+        const customAssignments = [
+            {
+                id: 100,
+                title: "Custom Assignment from localStorage",
+                items: [],
+            },
+        ];
+        localStorage.setItem(
+            "coflowcode-assignments",
+            JSON.stringify(customAssignments)
+        );
+
+        render(<App />);
+
+        expect(
+            screen.getByText("Custom Assignment from localStorage")
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByText("Introduction to TypeScript")
+        ).not.toBeInTheDocument();
+    });
+
+    test("reset button restores sample assignments", () => {
+        // Start with custom data
+        const customAssignments = [
+            {
+                id: 100,
+                title: "Custom Assignment",
+                items: [],
+            },
+        ];
+        localStorage.setItem(
+            "coflowcode-assignments",
+            JSON.stringify(customAssignments)
+        );
+
+        render(<App />);
+
+        // Verify custom assignment is loaded
+        expect(screen.getByText("Custom Assignment")).toBeInTheDocument();
+
+        // Click reset button
+        const resetButton = screen.getByTestId("reset-button");
+        fireEvent.click(resetButton);
+
+        // Verify sample assignments are loaded
+        expect(
+            screen.getByText("Introduction to TypeScript")
+        ).toBeInTheDocument();
+        expect(screen.getByText("React Hooks")).toBeInTheDocument();
+        expect(screen.getByText("Advanced React Patterns")).toBeInTheDocument();
+        expect(screen.queryByText("Custom Assignment")).not.toBeInTheDocument();
+    });
+});
 });
