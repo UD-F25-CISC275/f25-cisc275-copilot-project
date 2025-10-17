@@ -123,7 +123,11 @@ describe("assignmentStorage", () => {
 
             // They should have the same values but not be the same reference
             expect(samples1).toEqual(samples2);
-            expect(samples1).toBe(samples2); // They reference the same array
+            expect(samples1).not.toBe(samples2); // Independent copies
+
+            // Verify mutations don't affect each other
+            samples1[0].title = "Modified Title";
+            expect(samples2[0].title).toBe("Introduction to TypeScript");
         });
     });
 });

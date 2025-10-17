@@ -52,5 +52,5 @@ export function saveAssignments(assignments: Assignment[]): void {
  * Get sample assignments (used for reset functionality)
  */
 export function getSampleAssignments(): Assignment[] {
-    return sampleAssignments;
+    return JSON.parse(JSON.stringify(sampleAssignments)) as Assignment[];
 }
